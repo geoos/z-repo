@@ -1,0 +1,42 @@
+<header class="navbar navbar-expand-lg navbar-inverse fixed-top zrepo-header py-0">
+    <div class="container-fluid">
+        <div class="navbar-translate">
+            <img src="img/zonar.png" height="30px" style="margin-top: -10px;" />
+            <div class="navbar-brand ml-3" style="margin-top: 6px;" >Z-REPO</div> 
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#contenedorOpciones">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="navbar-toggler-icon"></span>
+                <span class="navbar-toggler-icon"></span>
+                <span class="navbar-toggler-icon"></span>
+            </button> 
+        </div>
+        <div id="contenedorOpciones" class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto" style="margin-top: 10px;">
+                <li id="itemAdmin" class="nav-item">
+                    <a id="cmdAdmin" href="#" class="nav-link">
+                        <i class="fas fa-wrench mr-1"></i>
+                        Administrar Datos
+                    </a>
+                </li>
+                <li id="itemConsultas" class="nav-item">
+                    <a id="cmdConsultas" href="#" class="nav-link">
+                        <i class="fab fa-chart-line mr-1"></i>
+                        Consultas
+                    </a>
+                </li>
+                <li class="nav-item ml-4">
+                    <a id="cmdMiCuenta" href="#" data-toggle="dropdown" class="nav-link">
+                        <i class="fas fa-2x fa-user-circle mr-1" style="margin-top: -10px;"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <h6 id="lblNombreUsuario" class="dropdown-header">Mi Cuenta</h6>
+                        <a id="cmdCambiarPwd" href="#" class="dropdown-item"><i class="fas fa-key mr-2"></i>Cambiar Contraseña</a>
+                        <a id="cmdLogout" href="#" class="dropdown-item"><i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<div id="loader" class="h-100" data-z-load="common/Empty" style="margin-top:64px;"></div>

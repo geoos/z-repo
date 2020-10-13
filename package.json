@@ -1,0 +1,33 @@
+{
+  "name": "z-repo",
+  "version": "1.0.0",
+  "description": "Z-RREPO Geoos",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "nodemon --watch ./lib --watch ./minz --watch ./index.js --inspect=0.0.0.0:9235 --nolazy ./index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geoos/z-repo.git"
+  },
+  "keywords": [
+    "GEOOS",
+    "Zonar",
+    "Z-Repo"
+  ],
+  "author": "Jota",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/geoos/z-repo/issues"
+  },
+  "homepage": "https://github.com/geoos/z-repo#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "hjson": "^3.2.1",
+    "moment-timezone": "^0.5.31",
+    "mongodb": "^3.6.2",
+    "nodemon": "^2.0.4"
+  }
+}

@@ -1,0 +1,44 @@
+<div class="container login zrepo-panel h-100" style="border-left: 1px solid white; border-right: 1px solid white;">
+    <div class="row" style="padding-top: 60px;">
+        <div class="col-lg-6 offset-lg-3 col-md-6 offset-md-3 col-sm-8 offset-sm-2 col-xs-12">
+            <h1 class="float-left" style="margin-top: 70px;">Z-REPO</h1>
+            <img src="img/zonar.png" width="100px" class="float-right" />
+        </div>
+    </div>
+    <div class="row my-2 mx-2">
+        <div class="col-lg-6 offset-lg-3 col-md-6 offset-md-3 col-sm-8 offset-sm-2 col-xs-12 panel-form rounded p-2">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input id="edEmail" type="text" class="form-control" placeholder="Dirección Email" />
+            </div>
+            <div class="input-group mt-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                </div>
+                <input id="edPwd" type="password" class="form-control" placeholder="Contraseña" />
+            </div>
+            <hr />
+            <div id="edRecordarme" data-z-component="common/CheckBox" data-z-label="Recordarme en este Equipo"></div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-lg-6 offset-lg-3 col-md-6 offset-md-3 col-sm-8 offset-sm-2 col-xs-12 text-left">
+            <div class="container px-0">
+                <div class="row">
+                    <div class="col-6 text-left">
+                        <button id="cmdOlvidoPwd" class="btn btn-outline-info text-white">Olvidó Contraseña</button>
+                    </div>
+                    <div class="col-6 text-right">
+                        <button id="cmdLogin" type="button" class="btn btn-primary">
+                            <i id="noWait" class="fas fa-sign-in-alt mr-2"></i>
+                            <i id="wait" class="fas fa-spin fa-spinner mr-2"></i>
+                            Ingresar
+                        </button>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>
+</div>
