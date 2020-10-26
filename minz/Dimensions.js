@@ -1,6 +1,7 @@
 'use strict';
 
 const { resolve } = require("path");
+const { on } = require("process");
 const mongo = require("./MongoDB");
 
 class Dimensions {
@@ -414,9 +415,12 @@ class Dimensions {
         let d =this.dimensions[dimensionCode];
         if (!d) throw("No se encontró la dimensión '" + dimensionCode + "'");
         let doc = await (await mongo.collection(dimensionCode)).findOne({_id:code});
-        for (let i=0; i<d.classifiers.length; i++) {
-            let c = d.classifiers[i];
-            doc[c.fieldName] = await this.getRowWithDependencies(c.dimensionCode, doc[c.fieldName]);
+        if (doc) {
+            for (let i=0; i<d.classifiers.length; i++) {
+                let c = d.classifiers[i];
+                let subRow = await this.getRowWithDependencies(c.dimensionCode, doc[c.fieldName]);
+                doc[c.fieldName] = subRow?subRow:null;
+            }
         }
         return doc;
     }  
@@ -437,16 +441,28 @@ class Dimensions {
             let url = dim.sync.url;
             const http = url.startsWith("http:")?require("http"):require("https");
             let geojson = await (new Promise((resolve, reject) => {
-                http.get(dim.sync.url, res => {
-                    if (res.statusCode != 200) {
-                        reject("[" + res.statusCode + "] " + res.statusMessage);
-                        return;
-                    }
-                    let st = "";
-                    res.on("data", chunk => st += chunk);
-                    res.on("end", _ => resolve(st));
-                    res.on("error", error => reject(error))
-                })    
+                try {
+                    http.get(dim.sync.url, res => {
+                        if (res.statusCode != 200) {
+                            reject("[" + res.statusCode + "] " + res.statusMessage);
+                            return;
+                        }
+                        let st = "";
+                        res.on("data", chunk => st += chunk);
+                        res.on("end", _ => resolve(st));
+                        res.on("error", error => {
+                            console.error("Error obteniendo geojson remoto", error);
+                            reject(error)
+                        })
+                    }).on("error", error => {
+                        console.error("Error obteniendo geojson remoto", error);
+                        reject("Error obteniendo archivo remoto:" + error.toString())
+                    })
+                } catch(error) {
+                    console.error("Error obteniendo geojson remoto", error);
+                    reject(error)
+
+                }
             }))
             geojson = JSON.parse(geojson);
             let propsMap = Object.keys(dim.sync.fields).reduce((map, fieldName) => {
@@ -472,7 +488,6 @@ class Dimensions {
 
                 })
             }
-            console.log("rows", rows);
             for (let row of rows) {
                 await this.addOrUpdateRow(dim.code, row)
             }

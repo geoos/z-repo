@@ -3,6 +3,18 @@ class Dimensions extends ZCustomController {
         this.edDimension.setGroups(window.zrepo.dimensionsTree, "name", "dimensions");
         this.refreshOptions();
         this.refresh();
+        this.resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                this.resizeList(entry.contentRect);
+            }
+        })
+    }
+
+    onThis_activated() {this.resizeObserver.observe(this.contentPane.view.parentNode)}
+    onThis_deactivated() {this.resizeObserver.unobserve(this.contentPane.view.parentNode)}
+
+    resizeList(rect) {
+        this.listContainer.view.style["max-height"] = (rect.height - 110) + "px";
     }
 
     get dimension() {return this.edDimension.selectedRow}
