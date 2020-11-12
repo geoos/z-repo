@@ -131,6 +131,15 @@ td a {color: black;}
     padding: 10px;
     background-color: #272626;
 }
+.zrepo-panel-close {
+    float: right;   
+    width: 22px; height: 22px;
+    background-image: url(../img/icons/close.svg);
+    background-repeat: no-repeat;
+    background-size: 22px 22px;
+    cursor: pointer;    
+    margin-right: 6px;
+}
 
 .zrepo-header {
     background-color: #272626;
@@ -168,4 +177,65 @@ td a {color: black;}
     background-color: #444343 !important;
     color: white;
     border: 1px solid white;    
+}
+
+.day-cell {
+    border-right: 1px solid white;
+    height: 20px;
+    text-align: center;
+    color: white;
+    position: absolute;
+    top:30px;
+}
+.first-day-cell {
+    border-left: 1px solid white;
+}
+.bootstrap-datetimepicker-widget {
+    pointer-events: all;
+    font-size: 13px;
+    text-align: center;
+    padding: 4px;
+    opacity: 0.9;
+    background-color: #272626;    
+    color: white;
+    z-index: 400;
+    border: 1px solid #3D3D3D;
+}
+.datetimepicker {
+    border: 1px solid white;
+    border-radius: 5px;
+}
+.timepicker {
+    /*border: 1px solid white;*/
+    border-radius: 5px;
+    padding:0;
+    padding-top: 10px;
+}
+.timepicker-hour {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !;
+    font-weight: normal !important;    
+    line-height: 30px !important;
+}
+.timepicker-minute {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !;
+    font-weight: normal !important;    
+    line-height: 30px !important;
+}
+
+.bootstrap-datetimepicker-widget table td.day {
+    color: lightgray;
+}
+.bootstrap-datetimepicker-widget table td span {
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    color: white;
+}
+.bootstrap-datetimepicker-widget table td span:hover {
+    color: gray;
+    background-color: royalblue;
 }

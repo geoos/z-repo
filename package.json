@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "nodemon --watch ./lib --watch ./minz --watch ./index.js --inspect=0.0.0.0:9235 --nolazy ./index.js",
+    "debug": "nodemon --watch ./lib --watch ./minz --watch ./dataSets --watch ./index.js --inspect=0.0.0.0:9235 --nolazy ./index.js",
     "start": "node index.js"
   },
   "repository": {

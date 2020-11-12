@@ -1,16 +1,11 @@
 'use strict';
 
-const { resolve } = require("path");
-const { on } = require("process");
 const mongo = require("./MongoDB");
 
 class Dimensions {
     static get instance() {
         if (!Dimensions.singleton) Dimensions.singleton = new Dimensions();
         return Dimensions.singleton;
-    }
-    constructor() {
-        
     }
     get dimensions() {
         return require("./../lib/Config").config.dimensions;

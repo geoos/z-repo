@@ -107,6 +107,10 @@ class Dimensions extends ZCustomController {
     }
 
     async onRowsList_change(row, rowIndex) {
+        if (rowIndex < 0) {
+            this.rowDetails.hide();
+            return;
+        }
         this.rowDetails.show();
         this.lblDetailsCaption.text = "[" + row.code + "] " + row.name;
         let rowWithDeps = await zPost("getRowWithDependencies.zrepo", {dimCode:this.edDimension.value, code:row.code});

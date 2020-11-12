@@ -1,0 +1,55 @@
+<div class="container-fuild p-1 my-0">
+    <div class="navbar zrepo-panel py-0 rounded my-0 p-2" >
+        <select id="edDataSet" class="selectpicker show-tick mr-2" data-width="250px" data-live-search="true" data-style="mr-2 btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
+        <div id="edFilter" class="ml-auto" data-z-component="common/TextSearch"></div>
+        <select id="cmdUpload" class="selectpicker ml-2 mr-2" data-style="mr-2 btn btn-sm btn-primary text-white px-2" title="Cargar Archivo" data-z-id-field="idx" data-z-label-field="label"></select>
+    </div>
+</div>
+
+<div id="contentPane" class="px-2">
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="listContainer" class="card mb-0 mt-1 px-2" style="overflow-y: auto;">
+                <table id="rowsList" class="mt-2 w-100 table table-sm table-hover"
+                    data-z-selected-row-class="table-primary"
+                    data-z-pagination="#paginator"
+                    data-z-rows-info="#rowsDetail"
+                >
+                    <thead>
+                        <th data-z-field="fmtTime" >Tiempo</th>
+                        <th data-z-field="c1" >C1</th>
+                        <th data-z-field="c2" >C2</th>
+                        <th data-z-field="c3" >C3</th>
+                        <th data-z-field="c4" >C4</th>
+                        <th data-z-field="c5" >C5</th>
+                        <th data-z-field="c6" >C6</th>
+                        <th data-z-field="c7" >C7</th>
+                        <th data-z-field="c8" >C8</th>
+                        <th data-z-field="c9" >C9</th>
+                        <th data-z-field="c10" >C10</th>
+                        <th data-z-field="c11" >C11</th>
+                        <th data-z-field="c12" >C12</th>
+                        <th data-z-field="c13" >C13</th>
+                        <th data-z-field="c14" >C14</th>
+                        <th data-z-field="c15" >C15</th>
+                        <th data-z-field="c16" >C16</th>
+                        <th data-z-field="c17" >C17</th>
+                        <th data-z-field="c18" >C18</th>
+                        <th data-z-field="c19" >C19</th>
+                        <th data-z-field="c20" >C20</th>
+                    </thead>
+                    <tbody>-</tbody>
+                </table>
+                <div class="border-top pt-2 pb-1">
+                    <div id="rowsDetail" class="text-center text-muted"></div>
+                    <div id="paginator" class="pagination pagination-sm float-right" style="margin-top:-26px;"
+                        data-z-pagination="server"
+                        data-z-rows-per-page="20"
+                        data-z-n-pages="10"
+                    >
+                    </div>
+                </div>        
+            </div>
+        </div>
+    </div>
+</div>

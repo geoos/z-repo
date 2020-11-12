@@ -1,9 +1,8 @@
-'use strict';
-
-const config = require("./Config");
+const config = require("../lib/Config");
 const mongo = require('./MongoDB');
 const dimensions = require("./Dimensions");
 const moment = require("moment-timezone");
+const logs = require("../lib/Logs");
 
 const temporalityLevel = {
     "5m":{level:0, name:"5 min."},
@@ -33,34 +32,11 @@ class Variables {
         if (!Variables.singleton) Variables.singleton = new Variables();
         return Variables.singleton;
     }
-    constructor() {
-        this.variables = null;
-        this.varIndexerPipes = {};
+
+    get variables() {
+        return require("./../lib/Config").config.variables;
     }
 
-    async init() {
-        try {
-            await mongo.collection("z_variables");
-            await this.loadVariables();
-        } catch(error) {
-            throw error;
-        }
-    }
-
-    // Variables
-    async loadVariables() {
-        try {
-            this.variables = {};
-            let zVariables = await mongo.collection("z_variables");
-            let rows = await zVariables.find().toArray();
-            rows.forEach(r => {
-                if (!r.classifiers) r.classifiers = [];
-                this.variables[r.code] = r;            
-            });
-        } catch(error) {
-            throw error;
-        }
-    }
     getVariables(filter) {
         let f = filter?filter.toLowerCase():null;
         return Object.keys(this.variables)
@@ -71,13 +47,30 @@ class Variables {
     getVariable(code) {
         return this.variables[code];
     }
-    async recreateIndexes(variable) {
+
+    async init() {
+        if (!mongo.isInitialized()) return;
+        try {
+            this.varIndexerPipes = [];
+            Object.keys(this.variables).forEach(varCode => this.variables[varCode].code = varCode)
+            for (let v of this.getVariables()) {
+                await this.recreateIndexes(v, true);
+            }
+            await logs.debug("Variables initialized from Config")
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async recreateIndexes(variable, dontDrop) {
         try {
             let col = await mongo.collection(variable.code);
-            try {
-                await col.dropIndexes();
-            } catch(error) {
-                console.warn("Can't drop indexes on '" + variable.code + "':" + error.toString())
+            if (!dontDrop) {
+                try {
+                    await col.dropIndexes();
+                } catch(error) {
+                    console.warn("Can't drop indexes on '" + variable.code + "':" + error.toString())
+                }
             }
             await col.createIndex({time:1});
             if (variable.classifiers.length) {                
@@ -96,75 +89,7 @@ class Variables {
             throw(error);
         }
     }
-    async addVariable(variable) {
-        try {
-            if (this.variables[variable.code]) throw "Variable '" + variable.code + "' already exists";
-            variable.classifiers = variable.classifiers || [];
-            if (!variable.code || !variable.name || !variable.temporality) {
-                throw "Variable must include code, name and temporality";
-            }
-            variable.classifiers.forEach(c => {
-                if (!c.fieldName || !c.name || !c.dimensionCode || !c.defaultValue) {
-                    throw "Classifier must include fieldName, name, dimensionCode and defaultValue";
-                }
-            })
-            try {
-                if (!variable.classifiers) variable.classifiers = [];
-                await mongo.collection(variable.code);
-                await this.recreateIndexes(variable);
-            } catch(error) {
-                throw("Cannot create Mongo Collection for variable:" + error.toString());
-            }
-            variable._id = variable.code;
-            variable.temporality = variable.temporality || "1h";            
-            variable.saveDetails = variable.saveDetails?true:false;
-            let zVariables = await mongo.collection("z_variables");
-            await zVariables.insertOne(variable);
-            await this.loadVariables();
-            return variable;
-        } catch(error) {
-            throw error;
-        }
-    }
-    async saveVariable(variable) {
-        try {
-            let oldVar = this.variables[variable.code];
-            if (!oldVar) throw("Cannot find variable '" + variable.code + "'");
-            if (oldVar.saveDetails && !variable.saveDetails) {
-                await (await mongo.collection(variable.code + "_det")).drop();
-            } else if (!oldVar.saveDetails && variable.saveDetails) {
-                await mongo.collection(variable.code + "_det");
-                await (await mongo.collection(variable.code + "_det")).createIndex({time:1});
-            }        
-            if (oldVar.temporality != variable.temporality) {
-                await (await mongo.collection(variable.code)).deleteMany({});
-            }
-            await (await mongo.collection("z_variables")).updateOne({_id:variable.code}, {
-                $set:{name:variable.name, temporality:variable.temporality, saveDetails:variable.saveDetails, options:variable.options}
-            });
-            await this.loadVariables();
-        } catch(error) {
-            throw error;
-        }
-    }
-    async deleteVariable(code) {
-        try {
-            let v = this.variables[code];
-            if (!v) throw "Can't find variable '" + code + "'";
-            await (await mongo.collection("z_variables")).deleteOne({_id:code});
-            try {
-                await (await mongo.collection(code)).drop();
-            } catch(error) {}
-            try {
-                await (await mongo.collection(code + "_det")).drop();
-            } catch(error) {}
-            await this.loadVariables();
-            delete this.varIndexerPipes[code];
-            return v;
-        } catch(error) {
-            throw error;
-        }
-    }
+
     async deletePeriod(variableCode, startTime, endTime, varData, details) {
         try {
             let v = this.variables[variableCode];
@@ -186,57 +111,6 @@ class Variables {
             throw error;
         }
     }
-    /*
-    async addClassifier(variableCode, classifier) {
-        let v = variables[variableCode];
-        if (!v) throw("Variable '" + variableCode + "' no encontrada");
-        let classifiers = v.classifiers?v.classifiers:[];
-        let found = classifiers.findIndex(c => c.fieldName == classifier.fieldName);
-        if (found >= 0) throw("El Campo '" + classifier.fieldName + "' ya existe en la variable");
-        classifiers.push(classifier);
-        await (await this.getCollection("z_variables")).updateOne({_id:variableCode}, {$set:{classifiers:classifiers}});
-        await this.loadVariables();
-        // update existing data with default value
-        let setObject = {};
-        setObject[classifier.fieldName] = classifier.defaultValue;
-        let index = {};
-        index[classifier.fieldName] = 1;
-        await (await this.getCollection(variableCode)).createIndex(index);
-        await (await this.getCollection(variableCode)).updateMany({}, {$set:setObject});
-        if (varIndexerPipes[variableCode]) delete varIndexerPipes[variableCode];
-        await this.recreateIndexes(v);
-        return variables[variableCode];
-    }
-    async saveClassifier(variableCode, classifier) {
-        let v = variables[variableCode];
-        if (!v) throw("Variable '" + variableCode + "' no encontrada");
-        let classifiers = v.classifiers?v.classifiers:[];
-        let idx = classifiers.findIndex(c => c.fieldName == classifier.fieldName);
-        if (idx < 0) throw("No se encontró el campo '" + classifier.fieldName + "' en los clasificadores de la variable");
-        classifiers[idx].name = classifier.name;
-        classifiers[idx].defaultValue = classifier.defaultValue;
-        await (await this.getCollection("z_variables")).updateOne({_id:variableCode}, {$set:{classifiers:classifiers}});
-        await this.loadVariables();        
-        return variables[variableCode];
-    }
-    async deleteClassifier(variableCode, classifier) {
-        let v = variables[variableCode];
-        if (!v) throw("Variable '" + variableCode + "' no encontrada");
-        let classifiers = v.classifiers?v.classifiers:[];
-        let idx = classifiers.findIndex(c => c.fieldName == classifier.fieldName);
-        if (idx < 0) throw("No se encontró el campo '" + classifier.fieldName + "' en los clasificadores de la variable");
-        classifiers.splice(idx, 1);
-        await (await this.getCollection("z_variables")).updateOne({_id:variableCode}, {$set:{classifiers:classifiers}});
-        await this.loadVariables();
-        // update existing data with removing field
-        let unsetObject = {};
-        unsetObject[classifier.fieldName] = "";
-        await (await this.getCollection(variableCode)).updateMany({}, {$unset:unsetObject});
-        if (varIndexerPipes[variableCode]) delete varIndexerPipes[variableCode];
-        await this.recreateIndexes(v);
-        return variables[variableCode];
-    }
-    */
 
     addClassifiersToIndexer(pipe, varOrDim, path) {
         varOrDim.classifiers.forEach(c => {
@@ -262,25 +136,6 @@ class Variables {
             }
         });
     }
-    /*
-    async importVariables(vars) {
-        try {
-            let colVars = await this.getCollection("z_variables");
-            for (let i=0; i<vars.length; i++) {
-                let v = vars[i];
-                // Eliminar si existe
-                await colVars.deleteOne({_id:v.code});
-                await colVars.insertOne(v);
-                await db.createCollection(v.code);
-                await this.recreateIndexes(v);
-            }
-        } catch(error) {
-            console.log(error);
-            throw error;
-        }
-        this.loadVariables();
-    }
-    */
     getVarIndexerPipe(variableCode) {
         if (this.varIndexerPipes[variableCode]) return this.varIndexerPipes[variableCode];
         let pipe = [];
@@ -295,7 +150,6 @@ class Variables {
                 let v = this.variables[variableCode];
                 if (!v) throw "No se encontró la variable '" + variableCode + "'";
                 await (await mongo.collection(variableCode)).dropIndexes(); 
-                await (await mongo.collection("z_variables")).updateOne({_id:variableCode}, {$set:{indexing:true}});
                 // Delete "_idx" collection if exists
                 try {
                     await (await mongo.collection(variableCode + "_idx")).drop();
@@ -318,7 +172,6 @@ class Variables {
                 await cursor.close();
                 await mongo.db.renameCollection(variableCode + "_idx", variableCode, {dropTarget:true});
                 console.log("End of Full index on " + variableCode);
-                await (await mongo.collection("z_variables")).updateOne({_id:variableCode}, {$set:{indexing:false}});
                 await this.loadVariables(); 
                 await this.recreateIndexes(v);
             } catch(error) {
@@ -327,26 +180,6 @@ class Variables {
         });
         // Keep promise running and return
         return;
-    }
-    async getVarStatus(variableCode) {
-        var html = "";
-        var status = "ok";
-        let v = await (await mongo.collection("z_variables")).findOne({_id:variableCode});
-        if (v.indexing) {
-            status = "idx";
-            html += "<strong>La variable está siendo indexada</strong>";
-        } else {
-            html += "La variable está recibiendo datos";
-        }
-        html += "<hr />";
-        let n = await (await mongo.collection(variableCode)).find({}).count();
-        html += "<ul><li>Se encontraron " + n + " grupos acumulados (tiempo, clasificadores ...)</li>";
-        if (v.saveDetails) {
-            n = await (await mongo.collection(variableCode + "_det")).find({}).count();
-            html += "<li>Se encontraron " + n + " registros de detalle de transacciones</li>";
-        }
-        html += "</ul>";
-        return {code:status, html:html};
     }
     /*
     normalizeTime(temporality, time) {

@@ -1,7 +1,7 @@
 const dimensions = require("./Dimensions");
 const variables = require("./Variables");
 const security = require("./Security");
-const config = require("./Config");
+const config = require("../lib/Config");
 const moment = require("moment-timezone");
 
 class RestAPI {
@@ -94,7 +94,7 @@ class RestAPI {
         // Dimensions
         app.get("/dim/dimensions", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(await dimensions.getDimensions(req.query.filter)));
             } catch(error) {
@@ -108,7 +108,7 @@ class RestAPI {
         });
         app.get("/dim/:code", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 let d = await dimensions.getDimension(req.params.code);
                 if (!d) res.status(404).send("Not Found");
@@ -122,46 +122,12 @@ class RestAPI {
                 }
             }
         });
-        app.post("/dim", async (req, res) => {
-            try {
-                await security.checkPrivilege(this.getAuth(req), "admin");
-                res.setHeader('Content-Type', 'application/json');
-                let d = await dimensions.addOrSaveDimension(req.body);
-                res.send(JSON.stringify(d));
-            } catch(error) {
-                if (typeof error == "string") {
-                    res.status(400).send(error.toString())
-                } else {
-                    console.log(error);
-                    res.status(500).send("Internal Error")
-                }
-            }
-        })
-        app.delete("/dim/:code", async (req, res) => {
-            try {
-                await security.checkPrivilege(this.getAuth(req), "admin");
-                res.setHeader('Content-Type', 'application/json');
-                let d = await dimensions.getDimension(req.params.code);
-                if (!d) {
-                    res.status(404).send("Not Found");
-                    return;
-                }
-                await dimensions.deleteDimension(d.code);
-                res.send(JSON.stringify(d));
-            } catch(error) {
-                if (typeof error == "string") {
-                    res.status(400).send(error.toString())
-                } else {
-                    console.log(error);
-                    res.status(500).send("Internal Error")
-                }
-            }
-        })
+
 
         // Dimension Rows
         app.post("/dim/:code/rows", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "post");
+                await security.checkPrivilege(this.getAuth(req), "minz-write-dim");
                 res.setHeader('Content-Type', 'application/json');
                 let row = await dimensions.addOrUpdateRow(req.params.code, req.body);
                 res.send(JSON.stringify(row));
@@ -176,7 +142,7 @@ class RestAPI {
         })
         app.delete("/dim/:dimCode/rows/:rowCode", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "post");
+                await security.checkPrivilege(this.getAuth(req), "minz-write-dim");
                 res.setHeader('Content-Type', 'application/json');
                 let row = await dimensions.deleteRow(req.params.dimCode, req.params.rowCode);
                 res.send(JSON.stringify(row));
@@ -191,7 +157,7 @@ class RestAPI {
         })
         app.get("/dim/:dimCode/rows/:rowCode", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 let row = await dimensions.getRow(req.params.dimCode, req.params.rowCode);
                 res.send(JSON.stringify(row));
@@ -206,7 +172,7 @@ class RestAPI {
         })
         app.get("/dim/:dimCode/rows", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 let filter = req.query.filter?decodeURIComponent(req.query.filter):undefined;
                 if (filter) {
@@ -254,7 +220,7 @@ class RestAPI {
         // Variables
         app.get("/var/variables", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(await variables.getVariables(req.query.filter)));
             } catch(error) {
@@ -268,7 +234,7 @@ class RestAPI {
         });
         app.get("/var/:code", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 res.setHeader('Content-Type', 'application/json');
                 let d = await variables.getVariable(req.params.code);
                 if (!d) res.status(404).send("Not Found");
@@ -282,49 +248,9 @@ class RestAPI {
                 }
             }
         });
-        app.post("/var", async (req, res) => {
-            try {
-                await security.checkPrivilege(this.getAuth(req), "admin");
-                res.setHeader('Content-Type', 'application/json');
-                let d = await variables.getVariable(req.body.code);
-                if (d) {
-                    await variables.saveVariable(req.body);
-                } else {
-                    d = await variables.addVariable(req.body);
-                }
-                res.send(JSON.stringify(d));
-            } catch(error) {
-                if (typeof error == "string") {
-                    res.status(400).send(error.toString())
-                } else {
-                    console.log(error);
-                    res.status(500).send("Internal Error")
-                }
-            }
-        })
-        app.delete("/var/:code", async (req, res) => {
-            try {
-                await security.checkPrivilege(this.getAuth(req), "admin");
-                res.setHeader('Content-Type', 'application/json');
-                let d = await variables.getVariable(req.params.code);
-                if (!d) {
-                    res.status(404).send("Not Found");
-                    return;
-                }
-                let v = await variables.deleteVariable(d.code);
-                res.send(JSON.stringify(v));
-            } catch(error) {
-                if (typeof error == "string") {
-                    res.status(400).send(error.toString())
-                } else {
-                    console.log(error);
-                    res.status(500).send("Internal Error")
-                }
-            }
-        })
         app.delete("/data/:code/period", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "post");
+                await security.checkPrivilege(this.getAuth(req), "minz-write-var");
                 let startTime = parseInt(req.query.startTime);
                 let endTime = parseInt(req.query.endTime);
                 if (isNaN(startTime) || isNaN(endTime)) throw "Must indicate startTime and endTime";
@@ -344,7 +270,7 @@ class RestAPI {
         })
         app.post("/data/:code", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "post");
+                await security.checkPrivilege(this.getAuth(req), "minz-write-var");
                 res.setHeader('Content-Type', 'application/json');
                 let d = await variables.postData(req.params.code, req.body.time, req.body.value, req.body.data, req.body.options);
                 res.send(JSON.stringify(d));
@@ -359,7 +285,7 @@ class RestAPI {
         })
         app.post("/batch", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "post");
+                await security.checkPrivilege(this.getAuth(req), "minz-write-var");
                 res.setHeader('Content-Type', 'application/json');
                 let d = await variables.postDataBatch(req.body.batch, req.body.options);
                 res.send(JSON.stringify(d));
@@ -376,7 +302,7 @@ class RestAPI {
         // Queries
         app.get("/data/:code/time-serie", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 let temporality = req.query.temporality;
                 if (!temporality) throw "Must provide temporality";
                 let startTime = req.query.startTime;
@@ -402,7 +328,7 @@ class RestAPI {
         })
         app.get("/data/:code/period-summary", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 let startTime = req.query.startTime;
                 let endTime = req.query.endTime;
                 if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
@@ -426,7 +352,7 @@ class RestAPI {
         })
         app.get("/data/:code/dim-serie", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 let startTime = req.query.startTime;
                 let endTime = req.query.endTime;
                 if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
@@ -453,7 +379,7 @@ class RestAPI {
         })
         app.get("/data/:code/time-dim", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 let startTime = req.query.startTime;
                 let endTime = req.query.endTime;
                 if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
@@ -481,7 +407,7 @@ class RestAPI {
         })
         app.get("/data/:code/dim-dim", async (req, res) => {
             try {
-                await security.checkPrivilege(this.getAuth(req), "query");
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
                 let startTime = req.query.startTime;
                 let endTime = req.query.endTime;
                 if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);

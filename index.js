@@ -11,6 +11,9 @@ async function startHTTPServer() {
         const http = require('http');
         const portal = require("./lib/Portal");
 
+        console.log("Initializing ...");
+        await require("./dataSets/DataSets").init();
+        await require("./minz/Variables").init();
         zServer.registerModule("zrepo", portal);
 
         app.use("/", express.static(__dirname + "/www"));
@@ -24,6 +27,8 @@ async function startHTTPServer() {
         
         app.post("/*.*", (req, res) => zServer.resolve(req, res));     
 
+        require("./minz/RestAPI").register(app);
+        
         let port = config.httpPort;
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {

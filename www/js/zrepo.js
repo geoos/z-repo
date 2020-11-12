@@ -30,4 +30,23 @@ class ZRepo {
         })
         return domains;
     }
+    get dataSetsTree() {
+        let domains = this.domains;
+        domains.forEach(d => d.dataSets = []);
+        Object.keys(this.config.dataSets).forEach(dataSetCode => {
+            let p = dataSetCode.indexOf(".");
+            if (p) {
+                let ds = this.config.dataSets[dataSetCode];
+                ds.code = dataSetCode;
+                let domain = dataSetCode.substr(0, p);
+                let d = domains.find(d => d.code == domain);
+                if (d) d.dataSets.push(ds)
+            }
+        });
+        domains = domains.filter(d => d.dataSets.length);
+        domains.forEach(d => {
+            d.dataSets.sort((d1, d2) => d1.name > d2.name?1:-1)
+        })
+        return domains;
+    }
 }

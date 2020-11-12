@@ -34,6 +34,8 @@ class MongoDB {
         }
     }
 
+    isInitialized() {return this.db?true:false}
+
     collection(name) {
         return new Promise((resolve, reject) => {
             if (!this.db) {

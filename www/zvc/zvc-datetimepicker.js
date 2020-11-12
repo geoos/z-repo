@@ -1,12 +1,14 @@
 class ZDateTimePicker extends ZController {
     onThis_init() {
         this.$view = $(this.view);
-        this.format = this.$view.data("z-format") || "DD/MM/YYYY";
         this.locale = this.$view.data("z-locale") || window.language || "es";
         this.$view.datetimepicker({
             locale:this.locale,
-            format:this.format,
+            format:this.$view.data("z-format") || "DD/MM/YYYY",
             keepInvalid:false,
+            sideBySide:true,
+            //keepOpen:true,
+            //debug:true,
             icons: {
                 time: "fas fa-clock-o",
                 date: "fas fa-calendar",
@@ -39,8 +41,12 @@ class ZDateTimePicker extends ZController {
     get value() {
         if (!this.$view.data("DateTimePicker").date()) return null;
         let dt = this.$view.data("DateTimePicker").date();
-        return dt.toDate();
+        return dt;
+        //return dt.toDate();
     }
+
+    get format() {return this.$view.data("DateTimePicker").format()}
+    set format(fmt) {this.$view.data("DateTimePicker").format(fmt)}
 }
 
 ZVC.registerComponent("INPUT", e => (e.classList.contains("datetimepicker")), ZDateTimePicker);
