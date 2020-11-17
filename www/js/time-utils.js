@@ -6,6 +6,7 @@ function getFormatForTemporality(temporality) {
 }
 
 function normalizeTimeForTemporality(temporality, time) {
+    console.log("normalize", time);
     switch(temporality) {
         case "1y": return time.startOf("year");
         case "1m": return time.startOf("month");

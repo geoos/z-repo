@@ -8,11 +8,21 @@ class WUploadDSFile extends ZDialog {
         this.workingMessage.hide();
         this.progress.hide();
         this.cmdOk.hide();
+        let timeZone = moment.tz.guess();
         if (this.dsImport.askForTime) {
             this.edTime.format = getFormatForTemporality(this.ds.temporality);
-            this.edTime.value = normalizeTimeForTemporality(this.ds.temporality, moment.tz());
+            this.edTime.value = normalizeTimeForTemporality(this.ds.temporality, moment.tz(timeZone));
         } else {
             this.edTime.hide();
+        }
+        this.edTimeZone.setRows(moment.tz.names().map(n => ({name:n})), timeZone);
+    }
+
+    onEdTimeZone_change() {
+        if (this.dsImport.askForTime) {
+            let tz = this.edTimeZone.value;
+            let t = this.edTime.value.valueOf();
+            this.edTime.value = moment.tz(t, tz);
         }
     }
 
@@ -94,7 +104,8 @@ class WUploadDSFile extends ZDialog {
         this.workingMessage.show();
         this.workingText.text = "Importando Archivo ...";
         if (this.dsImport.askForTime) {
-            let time = normalizeTimeForTemporality(this.ds.temporality, this.edTime.value).valueOf();
+            let normalizedTime = normalizeTimeForTemporality(this.ds.temporality, this.edTime.value);
+            let time = normalizedTime.valueOf();
             this.rows.forEach(r => r.time = time)
         }        
         this.progress.show();
