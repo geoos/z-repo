@@ -7,15 +7,19 @@ class WUploadDSFile extends ZDialog {
         this.errorMessage.hide();
         this.workingMessage.hide();
         this.progress.hide();
-        this.cmdOk.hide();
-        let timeZone = moment.tz.guess();
-        if (this.dsImport.askForTime) {
-            this.edTime.format = getFormatForTemporality(this.ds.temporality);
-            this.edTime.value = normalizeTimeForTemporality(this.ds.temporality, moment.tz(timeZone));
+        this.cmdOk.hide();        
+        if (this.ds.temporality == "none") {
+            this.timeRow.hide();
         } else {
-            this.edTime.hide();
+            let timeZone = moment.tz.guess();
+            if (this.dsImport.askForTime) {
+                this.edTime.format = getFormatForTemporality(this.ds.temporality);
+                this.edTime.value = normalizeTimeForTemporality(this.ds.temporality, moment.tz(timeZone));
+            } else {
+                this.edTime.hide();
+            }
+            this.edTimeZone.setRows(moment.tz.names().map(n => ({name:n})), timeZone);
         }
-        this.edTimeZone.setRows(moment.tz.names().map(n => ({name:n})), timeZone);
     }
 
     onEdTimeZone_change() {
@@ -61,6 +65,14 @@ class WUploadDSFile extends ZDialog {
                 case "geojson": await this.readGEOJSON(); break;
             }
             if (!this.rows.length) throw "No se encontraron filas para importar"
+            if (this.dsImport.mapFrom.constants) {
+                for (let row of this.rows) {
+                    for (let cName in this.dsImport.mapFrom.constants) {
+                        row[cName] = this.dsImport.mapFrom.constants[cName];
+                    }                    
+                }
+            }
+            console.log("rows", this.rows);
             this.cmdOk.find("#lblNRows").textContent = this.rows.length;
             this.cmdOk.show();
             this.workingMessage.hide();
@@ -97,6 +109,46 @@ class WUploadDSFile extends ZDialog {
         })
     }
 
+    readJSON() {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {    
+                try {            
+                    let json = JSON.parse(e.target.result)
+                    // Buscar atributo arreglo en la raiz
+                    let root = null;
+                    for (let keyName in json) {
+                        let v = json[keyName];
+                        if (Array.isArray(v)) {
+                            if (root) throw "Se encontraron dos atributos 'array' en la raíz del json. Sólo debe haber uno."
+                            root = keyName;
+                        }                    
+                    }
+                    if (!root) throw "No se encontró ningún atributo raíz de tipo 'array'";
+                    this.rows = json[root].reduce((list, srcRow) => {
+                        console.log("srcRow", srcRow);
+                        let row = {}
+                        this.ds.columns.forEach(col => {
+                            let colCode = col.code, srcCode = col.code;
+                            if (this.dsImport.mapFrom && this.dsImport.mapFrom[colCode]) {
+                                srcCode = this.dsImport.mapFrom[colCode];
+                            }
+                            row[colCode] = srcRow[srcCode]
+                            console.log(srcCode + " => " + colCode)
+                        })
+                        list.push(row);
+                        return list;
+                    }, [])
+                } catch(error) {
+                    reject(error);
+                }
+                resolve();
+            }
+            reader.onerror = error => reject(error);
+            reader.readAsText(this.edFile.view.files[0]);
+        })
+    }
+
     async onCmdOk_click() {
         this.importing = true;
         this.edTime.disable();
@@ -109,15 +161,19 @@ class WUploadDSFile extends ZDialog {
             this.rows.forEach(r => r.time = time)
         }        
         this.progress.show();
-        let batch = [], i=0;
+        let batch = [], i=0, batchSize = this.dsImport.batchSize || 1;
         while (i < this.rows.length && this.importing) {
             batch.push(this.rows[i]);
-            if (batch.length == this.dsImport.batchSize || i == (this.rows.length - 1)) {
+            if (batch.length == batchSize || i == (this.rows.length - 1)) {
                 let w = parseInt(100 * (i + 1) / this.rows.length) + "%";
                 this.progressBar.view.style.width = w;  
                 this.progressBar.text = "" + (i+1) + "/" + this.rows.length;
                 try {
-                    await zPost("importDSBatch.zrepo", {dsCode:this.ds.code, rows:batch});
+                    if (this.dsImport.batchSize) {
+                        await zPost("importDSBatch.zrepo", {dsCode:this.ds.code, rows:batch});
+                    } else {
+                        await zPost("importDS.zrepo", {dsCode:this.ds.code, rows:batch[0]});
+                    }
                 } catch(error) {
                     this.workingMessage.hide();
                     this.errorText.text = error.toString();

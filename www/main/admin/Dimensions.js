@@ -8,6 +8,19 @@ class Dimensions extends ZCustomController {
                 this.resizeList(entry.contentRect);
             }
         })
+        this.edExtraData.view.addEventListener("keydown", function(e) {
+            if (e.key == 'Tab') {
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+            
+                // put caret at right position again
+                this.selectionStart = this.selectionEnd = start + 1;
+              }
+        })
     }
 
     onThis_activated() {this.resizeObserver.observe(this.contentPane.view.parentNode)}
@@ -116,6 +129,38 @@ class Dimensions extends ZCustomController {
         let rowWithDeps = await zPost("getRowWithDependencies.zrepo", {dimCode:this.edDimension.value, code:row.code});
         let html = this.buildDetailsTree(this.edDimension.selectedRow, rowWithDeps, 0);
         this.detailsContainer.html = html;
+        let dim = this.edDimension.selectedRow;
+        let extraData = {};
+        for (let field in row) {
+            if (field != "_id" && field != "code" && field != "name" && field != "order") {
+                if (dim.classifiers.findIndex(c => (c.fieldName == field)) < 0) {
+                    extraData[field] = row[field];
+                }
+            }
+        }
+        this.edExtraData.value = JSON.stringify(extraData, null, 4);
+        this.cmdSaveExtraData.disable();
+    }
+    onEdExtraData_change() {
+        let j;
+        try {
+            j = JSON.parse(this.edExtraData.value);
+        } catch(err) {
+            this.cmdSaveExtraData.disable();
+            return;
+        }
+        this.cmdSaveExtraData.enable();
+    }
+    async onCmdSaveExtraData_click() {
+        let j = JSON.parse(this.edExtraData.value);
+        let row = this.rowsList.getSelectedRow();
+        console.log("row", row);
+        let dim = this.edDimension.selectedRow;
+        let newRow = {_id:row._id, code:row.code, name:row.name}
+        dim.classifiers.forEach(c => newRow[c.fieldName] = row[c.fieldName]);
+        for (let k in j) newRow[k] = j[k];
+        let saved = await zPost("saveDimRow.zrepo", {dimCode:dim.code, row:newRow})
+        this.rowsList.updateRow(this.rowsList.selectedRowIndex, saved)
     }
     buildDetailsTree(dim, row, level) {
         if (!dim.classifiers || !dim.classifiers.length) return "";

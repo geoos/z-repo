@@ -32,6 +32,11 @@ class DataSets extends ZCustomController {
 
     async refreshData() {
         let ds = this.edDataSet.selectedRow;
+        if (ds.temporality == "none") {
+            this.rowsList.hideColumn(0);
+        } else {
+            this.rowsList.showColumn(0);
+        }
         for (let i=0; i<20; i++) {
             if (i < ds.columns.length) {
                 let th = this.find("[data-z-field='c" + (i+1) + "']")
@@ -55,7 +60,9 @@ class DataSets extends ZCustomController {
 
     prepareRow(r) {        
         let ds = this.edDataSet.selectedRow;
-        r.fmtTime = moment.tz(r.time, window.timeZone).format(getFormatForTemporality(ds.temporality));
+        if (ds.temporality != "none") {
+            r.fmtTime = moment.tz(r.time, window.timeZone).format(getFormatForTemporality(ds.temporality));
+        }
         console.log("ds", ds, "row", r);
         if (!ds) return r;
         for (let i=0; i<20; i++) {

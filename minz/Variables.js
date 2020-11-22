@@ -307,6 +307,35 @@ class Variables {
                 throw("Temporality '" + temporality + "' not handled");
         }
     }
+
+    removeDimensionExtraData(idxDoc, d) {
+        let validNames = {}
+        if (d.classifiers) {
+            for (let c of d.classifiers) {
+                validNames[c.fieldName] = true;
+                validNames[c.fieldName + "_idx"] = true;
+            }
+        }
+        let names = Object.keys(idxDoc);
+        for (let name of names) {
+            if (!validNames[name]) delete idxDoc[name];
+        }
+        if (d.classifiers) {
+            for (let c of d.classifiers) {
+                if (idxDoc[c.fieldName + "_idx"]) {
+                    this.removeDimensionExtraData(idxDoc[c.fieldName + "_idx"], dimensions.getDimension(c.dimensionCode));
+                }
+            }
+        }
+    }
+    removeExtraDataFromVarIdx(idxDoc, v) {
+        for (let c of v.classifiers) {
+            if (idxDoc[c.fieldName + "_idx"]) {
+                this.removeDimensionExtraData(idxDoc[c.fieldName + "_idx"], dimensions.getDimension(c.dimensionCode));
+            }
+        }
+        return idxDoc;
+    }
     async postData(varCode, time, value, data, options) {
         try {
             if (!time) time = (new Date()).getTime();
@@ -350,6 +379,7 @@ class Variables {
                 if (pipe.length > 1) {
                     let [idxDoc] = await varCollection.aggregate(pipe).toArray();
                     if (!idxDoc) idxDoc = {};
+                    idxDoc = this.removeExtraDataFromVarIdx(idxDoc, v);
                     let setObject = {};
                     v.classifiers.forEach(c => {
                         let d = dimensions.getDimension(c.dimensionCode);
@@ -366,6 +396,7 @@ class Variables {
             throw("Error accumulating data:" + error.toString());            
         }
     }
+
     async postGrupoBatch(batch, options) { 
         try {
              for (var i=0; i<batch.length; i++) {

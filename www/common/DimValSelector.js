@@ -7,11 +7,11 @@ class DimValSelector extends ZCustomController{
         }
         let n = await zPost("getRowsCount.zrepo", {dimCode:this.classifier.dimensionCode})
         console.log("nRows", n);
-        if (n <= 100) {
+        //if (n <= 100) {
             this.usingSelect = true;
             let rows = await zPost("getRows.zrepo", {dimCode:this.classifier.dimensionCode})
             this.edSelect.setRows(rows, options.value);
-        }
+        //}
     }
 
     get value() {

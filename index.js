@@ -25,9 +25,8 @@ async function startHTTPServer() {
             next();
         });
         
-        app.post("/*.*", (req, res) => zServer.resolve(req, res));     
-
         require("./minz/RestAPI").register(app);
+        app.post("/*.*", (req, res) => zServer.resolve(req, res));     
         
         let port = config.httpPort;
         httpServer = http.createServer(app);

@@ -65,6 +65,7 @@ class Dimensions {
             let d = this.dimensions[dimensionCode];
             if (!d) throw("No se encontró la dimensión '" + dimensionCode + "'");
             // Update classifiers
+            let usedFields = {_id:true, code:true, name:true, order:true}
             let setObject = {name:row.name};
             for (let i=0; i<d.classifiers.length; i++) {
                 let c = d.classifiers[i];
@@ -75,8 +76,13 @@ class Dimensions {
                 } else {
                     await this.createDefaultRowIfNotExists(c.dimensionCode, v);
                 }
-                setObject[c.fieldName] = v;            
+                setObject[c.fieldName] = v;
+                usedFields[c.fieldName] = true;
             };
+            // Set extra data
+            for (let fieldName in row) {
+                if (!usedFields[fieldName]) setObject[fieldName] = row[fieldName];
+            }
             await (await mongo.collection(dimensionCode)).updateOne({_id:row.code}, {$set:setObject});
             return row;
         } catch(error) {
@@ -107,7 +113,6 @@ class Dimensions {
         try {
             let d = this.dimensions[dimensionCode];
             if (!d) throw("No se encontró la dimensión '" + dimensionCode + "'");
-            let setObject = {name:row.name};
             for (let i=0; i<d.classifiers.length; i++) {
                 let c = d.classifiers[i];
                 if (row[c.fieldName] === undefined) {
@@ -115,19 +120,15 @@ class Dimensions {
                 } else {
                     await this.createDefaultRowIfNotExists(c.dimensionCode, row[c.fieldName]);
                 }
-                setObject[c.fieldName] = row[c.fieldName];
             };
             row._id = row.code;
             row.order = await this.getNextOrder(dimensionCode);
+            let setObject = JSON.parse(JSON.stringify(row));
             try {
-                await (await mongo.collection(dimensionCode)).insertOne(row);
+                let col = await mongo.collection(dimensionCode);
+                await col.updateOne({_id:row._id}, {$set:setObject}, {upsert:true})
             } catch(error) {
-                try {
-                    await (await mongo.collection(dimensionCode)).updateOne({_id:row.code}, {$set:setObject});
-                } catch(error2) {
-                    console.log(error2);
-                    throw("Cannot add or update row to dimension '" + dimensionCode + "':" + error2.toString());
-                }
+                throw("Cannot add or update row to dimension '" + dimensionCode + "':" + error.toString());
             }
             return row;
         } catch(error) {
@@ -292,6 +293,15 @@ class Dimensions {
         }
         await cursor.close();
         return rows;
+    }
+    async getAllRows(dimensionCode) {
+        try {
+            let col = await mongo.collection(dimensionCode);
+             let rows = await col.find().toArray();
+             return rows;
+        } catch (error) {
+            throw error;
+        }
     }
     async getRowsWithClassifiersNames(dimensionCode, textFilter, filter, startRow, nRows) {
         let pipe = this.getRowsFilterPipeline(dimensionCode, textFilter, filter);

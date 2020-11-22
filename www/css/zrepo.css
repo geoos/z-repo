@@ -19,6 +19,13 @@ a:hover {
     text-decoration: underline;
 }
 
+textarea,
+pre {
+    -moz-tab-size : 4;
+      -o-tab-size : 4;
+         tab-size : 4;
+}
+
 #main {
     height: 100%;
 }

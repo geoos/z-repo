@@ -1,5 +1,6 @@
 const dimensions = require("./Dimensions");
 const variables = require("./Variables");
+const dataSets = require("./../dataSets/DataSets");
 const security = require("./Security");
 const config = require("../lib/Config");
 const moment = require("moment-timezone");
@@ -90,6 +91,25 @@ class RestAPI {
                 }
             }
         });
+
+        // DataSets
+        app.post("/dataSet/:code", async (req, res) => {
+            try {
+                await security.checkPrivilege(this.getAuth(req), "dataSet-" + req.params.code + "-write");
+                res.setHeader('Content-Type', 'application/json');
+                let d = await dataSets.importRow(req.params.code, req.body);
+                res.send(JSON.stringify(d));
+            } catch(error) {
+                console.error(error);
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        })
+        
 
         // Dimensions
         app.get("/dim/dimensions", async (req, res) => {
@@ -206,6 +226,22 @@ class RestAPI {
                 } else {
                     rows = await dimensions.getRows(req.params.dimCode, textFilter, filter, startRow, nRows);
                 }
+                res.status(200).send(JSON.stringify(rows)).end();
+            } catch(error) {
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        })
+
+        app.get("/dim/:dimCode/all-rows", async (req, res) => {
+            try {
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
+                res.setHeader('Content-Type', 'application/json');
+                let rows = await dimensions.getAllRows(req.params.dimCode);
                 res.status(200).send(JSON.stringify(rows)).end();
             } catch(error) {
                 if (typeof error == "string") {
@@ -433,6 +469,7 @@ class RestAPI {
                 }
             }
         })
+
     }
 }
 
