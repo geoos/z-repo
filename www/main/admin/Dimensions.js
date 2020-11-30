@@ -180,5 +180,30 @@ class Dimensions extends ZCustomController {
         html += "</ul>";
         return html;
     }
+
+    async onCmdExport_click() {
+        let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
+        if (n > 10000) {
+            this.showDialog("common/Error", {message:"La dimensión contiene demasiadas filas. Debe filtrar y exportar por lotes"});
+            return;
+        }
+        let rows = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow:0, nRows:n})
+        let json = [JSON.stringify(rows)];
+        let blob = new Blob(json, {type:"text/plain;charset=utf-8"})
+        let url = window.URL || window.webkitURL;
+        let link = url.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.download = this.dimension.code + ".json";
+        a.href = link;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    onCmdImport_click() {
+        this.showDialog("./WImportDimensionRows", {dimension:this.edDimension.selectedRow}, _ => {
+            this.refresh();
+        })
+    }
 }
 ZVC.export(Dimensions)

@@ -441,6 +441,18 @@ class Dimensions {
         }
     }
 
+    async importRows(dimensionCode, rows) {
+        try {
+            let dim = this.dimensions[dimensionCode];
+            if (!dim) throw "No se encontró la dimensión '" + dimensionCode + "'";
+            for (let row of rows) {
+                await this.addOrUpdateRow(dimensionCode, row);
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async doSyncGeoJson(dim) {
         try {
             let url = dim.sync.url;

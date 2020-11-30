@@ -632,8 +632,13 @@ class Variables {
         let pipe = this.getTimeSeriePipeline(varCode, temporality, startTime, endTime, filter);
         let cursor = await varCollection.aggregate(pipe);
         let rows = [];
+        let timeZone = config.timeZone;
         while (await cursor.hasNext()) {
             var doc = await cursor.next();
+            let m = moment.tz(timeZone).year(doc.localTime.year).month(doc.localTime.month - 1)
+                                        .date(doc.localTime.day).hour(doc.localTime.hour).minute(doc.localTime.minute)
+                                        .second(0).millisecond(0);
+            doc.time = m.valueOf();
             rows.push(doc);
         }
         await cursor.close();

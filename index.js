@@ -1,8 +1,10 @@
 const config = require("./lib/Config");
+const logs = require("./lib/Logs");
 
 async function startHTTPServer() {
     try {
         await config.init();
+        logs.info("Starting ZRepo Server");
         await (require("./minz/MongoDB")).init();
         const zServer = require("./lib/z-server");
         const express = require('express');
@@ -12,8 +14,11 @@ async function startHTTPServer() {
         const portal = require("./lib/Portal");
 
         console.log("Initializing ...");
+        logs.debug("Initializing dataSets ...");
         await require("./dataSets/DataSets").init();
+        logs.debug("Initializing MinZ Core ...");
         await require("./minz/Variables").init();
+        logs.debug("Registerin EndPoints ...");
         zServer.registerModule("zrepo", portal);
 
         app.use("/", express.static(__dirname + "/www"));
@@ -32,9 +37,11 @@ async function startHTTPServer() {
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {
             console.log("[ZRepo HTTP Server] Listenning at Port " + port);
+            logs.info("[ZRepo HTTP Server] Listenning at Port " + port)
         });
     } catch(error) {
         console.error("Can't start HTTP Server", error);
+        logs.error("Can't start server:" + error.toString())
     }
 }
 

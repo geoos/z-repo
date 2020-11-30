@@ -1,0 +1,40 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 id="title" class="modal-title">Importar Dimension</h6>
+                <i id="cmdCloseWindow" class="zrepo-panel-close" data-z-clickable="true"></i>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <i class="fas fa-upload fa-lg mr-4 text-info float-left" style="margin-top: 0;"></i>
+                    <h6 id="subtitle" class="heading text-white"></h6>
+                </div>
+                <hr />
+                <div id="errorMessage" class="alert alert-danger">
+                    <i class="fas fa-exclamation fa-lg mr-4 text-info float-left" style="margin-top: 0;"></i>
+                    <span id="errorText">Mensaje de Error</span>
+                </div>
+                <div id="workingMessage" class="alert alert-info">
+                    <i class="fas fa-spin fa-spinner fa-lg mr-4 text-info float-left"></i>
+                    <span id="workingText">Trabajando ...</span>
+                </div>
+                <div class="container">
+                    <div id="fileRow" class="row">
+                        <div class="form-group">
+                            <label for="edFile">Seleccione el Archivo</label>
+                            <input id="edFile" type="file" class="form-control form-control-sm" style="height: 40px; width: 400px;"/>
+                        </div>
+                    </div>
+                </div>    
+            </div>
+            <div class="modal-footer">
+                <button id="cmdOk" type="button" class="btn btn-primary">
+                    Importar Filas:
+                    <span id="lblNRows" class="badge b badge-secondary ml-2"></span>
+                </button>
+                <button id="cmdCancel" type="button" class="btn btn-link ml-auto">Cancelar</button>
+            </div>    
+        </div>
+    </div>
+</div>
