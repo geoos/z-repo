@@ -1,4 +1,4 @@
-# docker build -t docker.homejota.net/geoos/zrepo:latest -t docker.homejota.net/geoos/zrepo:0.40 .
+# docker build -t docker.homejota.net/geoos/zrepo:latest -t docker.homejota.net/geoos/zrepo:0.41 .
 # docker push docker.homejota.net/geoos/zrepo:latest
 #
 FROM node:14-alpine
