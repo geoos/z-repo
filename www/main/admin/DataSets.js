@@ -18,12 +18,23 @@ class DataSets extends ZCustomController {
 
     refreshDataSet() {
         let ds = this.edDataSet.selectedRow;
-        if (!ds.imports || !ds.imports.length) {
-            this.cmdUpload.hide();
+        console.log("dataSet", ds);
+        let imports = ds.imports || [];
+        let uploads = imports.filter(i => i.type == "upload");
+        if (!uploads.length) {
+            $(this.cmdUpload.view).parent().hide();
         } else {
+            $(this.cmdUpload.view).parent().show();
             this.cmdUpload.setRows(
-                ds.imports.filter(i => (i.type == "upload")).map((i, idx) => ({idx, label:i.label}))
+                uploads.map((i, idx) => ({idx, label:i.label}))
             )
+        }
+        let syncs = imports.filter(i => i.type == "sync");        
+        if (syncs.length) {
+            this.cmdSync.show();
+            this.find("#syncLabel").innerText = syncs[0].label;
+        } else {
+            this.cmdSync.hide();
         }
         this.refreshData();
     }
@@ -63,7 +74,6 @@ class DataSets extends ZCustomController {
         if (ds.temporality != "none") {
             r.fmtTime = moment.tz(r.time, window.timeZone).format(getFormatForTemporality(ds.temporality));
         }
-        console.log("ds", ds, "row", r);
         if (!ds) return r;
         for (let i=0; i<20; i++) {
             if (i < ds.columns.length) {
@@ -87,6 +97,13 @@ class DataSets extends ZCustomController {
         let ds = this.edDataSet.selectedRow;
         let dsImport = ds.imports[this.cmdUpload.value];
         this.showDialog("./WUploadDSFile", {ds:ds, dsImport:dsImport}, _ => this.refreshDataSet(), _ => this.refreshDataSet())
+    }
+
+    onCmdSync_click() {
+        let ds = this.edDataSet.selectedRow;
+        let importIndex = ds.imports.findIndex(i => i.type == "sync");
+        zPost("syncDataSet.zrepo", {dsCode:ds.code, importIndex});
+        this.showDialog("common/WInfo", {message:"Sincronización corriendo en segundo plano. Refresque los datos para ver el progreso"});
     }
 }
 ZVC.export(DataSets);

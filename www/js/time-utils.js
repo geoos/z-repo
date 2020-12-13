@@ -1,6 +1,7 @@
 function getFormatForTemporality(temporality) {
     switch(temporality) {
         case "1y": return "YYYY";
+        case "1d": return "YYYY-MM-DD";
         case "free": return "YYYY-MM-DD HH:mm:SS";
         default: throw "Temporalidad '" + temporality + "' no soportada con un formato";
     }
