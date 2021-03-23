@@ -27,6 +27,26 @@ class RestAPI {
     }
 
     register(app) {
+        // Time
+        app.get("/now", async (req, res) => {
+            try {
+                res.setHeader('Content-Type', 'application/json');
+                let m = moment.tz(config.timeZone);
+                let ret = {
+                    time:m.valueOf(),
+                    fmtLong:m.format("DD/MMM/YYYY HH:mm:ss"),
+                    fmtShort:m.format("DD/MMM HH:mm")
+                }
+                res.send(JSON.stringify(ret));
+            } catch(error) {
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        });
         // Security
         app.get("/tokens", async (req, res) => {
             try {
@@ -93,12 +113,53 @@ class RestAPI {
         });
 
         // DataSets
+        app.get("/dataSets", async (req, res) => {
+            try {
+                res.setHeader('Content-Type', 'application/json');
+                let rows = await dataSets.getDataSets();
+                res.send(JSON.stringify(rows));
+            } catch(error) {
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        });
         app.post("/dataSet/:code", async (req, res) => {
             try {
                 await security.checkPrivilege(this.getAuth(req), "dataSet-" + req.params.code + "-write");
                 res.setHeader('Content-Type', 'application/json');
                 let d = await dataSets.importRow(req.params.code, req.body);
                 res.send(JSON.stringify(d));
+            } catch(error) {
+                console.error(error);
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        })
+        app.get("/dataSet/:code/rows", async (req, res) => {
+            try {
+                await security.checkPrivilege(this.getAuth(req), "dataSet-" + req.params.code + "-read");
+                res.setHeader('Content-Type', 'application/json');
+                let startTime = req.query.startTime;
+                let endTime = req.query.endTime;
+                if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
+                if (!isNaN(parseInt(endTime)) && endTime.indexOf("-") < 0) endTime = parseInt(endTime);
+                if (!startTime || !endTime) throw "Must provide startTime and endTime";
+                if (typeof startTime == "string") startTime = moment.tz(startTime, config.timeZone).valueOf();
+                if (typeof endTime == "string") endTime = moment.tz(endTime, config.timeZone).valueOf();
+                let filter = decodeURIComponent(req.query.filter || "{}");
+                filter = JSON.parse(filter);
+                let columns = decodeURIComponent(req.query.columns || "[]");
+                columns = JSON.parse(columns);
+                let rows = await dataSets.query(req.params.code, startTime, endTime, filter, columns);
+                res.send(JSON.stringify(rows));
             } catch(error) {
                 console.error(error);
                 if (typeof error == "string") {
@@ -336,6 +397,47 @@ class RestAPI {
         })
 
         // Queries
+        app.get("/data/multi-var/time-serie", async (req, res) => {
+            try {
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
+                let temporality = req.query.temporality;
+                if (!temporality) throw "Must provide temporality";
+                let startTime = req.query.startTime;
+                let endTime = req.query.endTime;
+                if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
+                if (!isNaN(parseInt(endTime)) && endTime.indexOf("-") < 0) endTime = parseInt(endTime);
+                if (!startTime || !endTime) throw "Must provide startTime and endTime";
+                if (typeof startTime == "string") startTime = moment.tz(startTime, config.timeZone).valueOf();
+                if (typeof endTime == "string") endTime = moment.tz(endTime, config.timeZone).valueOf();
+                let filter = decodeURIComponent(req.query.filter || "{}");
+                filter = JSON.parse(filter);
+                let qVariables = decodeURIComponent(req.query.variables || "[]");
+                qVariables = JSON.parse(qVariables);
+                if (!qVariables.length) throw "No 'variables' provided";
+                res.setHeader('Content-Type', 'application/json');
+                let ret = {};
+                for (let iVar=0; iVar < qVariables.length; iVar++) {
+                    let rows = await variables.getTimeSerie(qVariables[iVar], req.query.temporality, startTime, endTime, filter);
+                    if (req.query.minimize) {
+                        let rows2 = rows.map(r => ({
+                            l:[r.localTime.year, r.localTime.month, r.localTime.day, r.localTime.hour, r.localTime.minute],
+                            t:r.time,
+                            v:r.value, n:r.n, m:r.min, M:r.max, s2:r.sum2
+                        }))
+                        rows = rows2;
+                    }
+                    ret[qVariables[iVar]] = rows;
+                }
+                res.send(JSON.stringify(ret));
+            } catch(error) {
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        })
         app.get("/data/:code/time-serie", async (req, res) => {
             try {
                 await security.checkPrivilege(this.getAuth(req), "minz-read");
@@ -352,6 +454,14 @@ class RestAPI {
                 filter = JSON.parse(filter);
                 res.setHeader('Content-Type', 'application/json');
                 let rows = await variables.getTimeSerie(req.params.code, req.query.temporality, startTime, endTime, filter);
+                if (req.query.minimize) {
+                    let rows2 = rows.map(r => ({
+                        l:[r.localTime.year, r.localTime.month, r.localTime.day, r.localTime.hour, r.localTime.minute],
+                        t:r.time,
+                        v:r.value, n:r.n, m:r.min, M:r.max, s2:r.sum2
+                    }))
+                    rows = rows2;
+                }
                 res.send(JSON.stringify(rows));
             } catch(error) {
                 if (typeof error == "string") {

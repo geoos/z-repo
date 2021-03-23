@@ -63,6 +63,24 @@ class DataSets {
             throw error;
         }
     }
+    async query(dsCode, startTime, endTime, filter, columns) {
+        try {
+            let col = await mongo.collection(dsCode);
+            filter.time = {"$gte":startTime, "$lte":endTime};
+            let rows = (await col.find(filter).sort({time:1}).toArray());
+            rows = rows.map(r => {
+                let row2 = columns.reduce((newRow, col) => {
+                    if (r[col] !== undefined) newRow[col] = r[col];
+                    return newRow;
+                }, {});
+                row2.time = r.time;                
+                return row2;
+            }, {});
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
 
     async getLastTime(dsCode) {
         try {
