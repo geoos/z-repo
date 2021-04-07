@@ -287,6 +287,15 @@ class RestAPI {
                 } else {
                     rows = await dimensions.getRows(req.params.dimCode, textFilter, filter, startRow, nRows);
                 }
+                if (req.query.columns) {
+                    let cols = JSON.parse(req.query.columns);
+                    // dejar solo "code", "name" y columns
+                    rows = rows.map(r => {
+                        let ret = {code:r.code, name:r.name};
+                        cols.forEach(c => ret[c] = r[c]);
+                        return ret;
+                    });
+                }
                 res.status(200).send(JSON.stringify(rows)).end();
             } catch(error) {
                 if (typeof error == "string") {
@@ -463,6 +472,37 @@ class RestAPI {
                     rows = rows2;
                 }
                 res.send(JSON.stringify(rows));
+            } catch(error) {
+                if (typeof error == "string") {
+                    res.status(400).send(error.toString())
+                } else {
+                    console.log(error);
+                    res.status(500).send("Internal Error")
+                }
+            }
+        })
+        app.get("/data/multi-var/period-summary", async (req, res) => {
+            try {
+                await security.checkPrivilege(this.getAuth(req), "minz-read");
+                let startTime = req.query.startTime;
+                let endTime = req.query.endTime;
+                if (!isNaN(parseInt(startTime)) && startTime.indexOf("-") < 0) startTime = parseInt(startTime);
+                if (!isNaN(parseInt(endTime)) && endTime.indexOf("-") < 0) endTime = parseInt(endTime);
+                if (!startTime || !endTime) throw "Must provide startTime and endTime";
+                if (typeof startTime == "string") startTime = moment.tz(startTime, config.timeZone).valueOf();
+                if (typeof endTime == "string") endTime = moment.tz(endTime, config.timeZone).valueOf();
+                let filter = req.query.filter || "{}";
+                filter = JSON.parse(filter);
+                let qVariables = decodeURIComponent(req.query.variables || "[]");
+                qVariables = JSON.parse(qVariables);
+                if (!qVariables.length) throw "No 'variables' provided";
+                res.setHeader('Content-Type', 'application/json');
+                let ret = {};
+                for (let iVar=0; iVar < qVariables.length; iVar++) {
+                    let rows = await variables.getPeriodResume(qVariables[iVar], startTime, endTime, filter);
+                    ret[qVariables[iVar]] = rows;
+                }
+                res.send(JSON.stringify(ret));
             } catch(error) {
                 if (typeof error == "string") {
                     res.status(400).send(error.toString())

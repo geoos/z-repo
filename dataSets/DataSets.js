@@ -129,16 +129,40 @@ class DataSets {
         try {
             let ds = this.dataSets[dsCode];
             if (!ds) throw "No se encontró el dataSet '" + dsCode + "'"
+            // Buscar columna tiempo y aplicar a "time" para estandarizar
+            if (!ds.columns.find(c => c.code == "time")) {
+                let timeCol = ds.columns.find(c => (c.time));
+                if (timeCol) {
+                    let timeZone = require("../lib/Config").config.timeZone;
+                    rows.forEach(r => {
+                        let rowTime = r[timeCol.code];
+                        if (!isNaN(parseInt(rowTime))) rowTime = parseInt(rowTime);
+                        if (typeof rowTime == "string") rowTime = moment.tz(rowTime, timeZone).valueOf();
+                        r.time = rowTime
+                    });
+                }
+            }
             let col = await mongo.collection(dsCode);
-            let key = this.getDSKey(ds);            
-            if (key) {
-                rows.forEach(r => r._id = r[key.code]);
-                for (let r of rows) {
+            //let key = this.getDSKey(ds);
+            let hasKey = ds.columns.find(c => c.key)?true:false;
+            if (hasKey) {
+                rows.forEach(r => {
+                    let id = "";
+                    if (r.time) id += "" + r.time;
+                    ds.columns.filter(c => (c.key && !c.time)).forEach(c => {
+                        if (id) id += "-";
+                        id += r[c.code];
+                    })
+                    r._id = id;
+                });
+                for (let r of rows) {                    
                     let updateDoc = Object.keys(r).reduce((doc, field) => {
                         if (field != "_id") doc[field] = r[field];
                         return doc;
                     }, {})
-                    await col.updateMany({_id:r._id}, {$set:updateDoc}, {upsert:true});
+                    let filterDoc = {_id:r._id};
+                    if (r.time) filterDoc.time = r.time;
+                    await col.updateMany(filterDoc, {$set:updateDoc}, {upsert:true});
                 }
             } else {
                 await col.insertMany(rows);
@@ -164,8 +188,9 @@ class DataSets {
         }
     }
 
-
     importRow(dsCode, row) {
+        let ds = this.dataSets[dsCode];
+        if (!ds) throw "No se encontró el dataSet '" + dsCode + "'";
         return this.importBatch(dsCode, [row]);
     }
 

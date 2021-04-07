@@ -665,7 +665,9 @@ class Variables {
                 n:{$sum:"$n"},
                 min:{$min:"$min"},
                 max:{$max:"$max"},
-                sum2:{$sum:"$sum2"}
+                sum2:{$sum:"$sum2"},
+                minTime:{$min:"$time"},
+                maxTime:{$max:"$time"}
             }
         });        
         return pipe;
@@ -681,6 +683,14 @@ class Variables {
             resume = {n:0};
         }
         await cursor.close();
+        if (resume.minTime) {
+            var m = moment.tz(resume.minTime, config.timeZone);
+            resume.minTimeLocale = [m.year(), m.month(), m.date(), m.hours(), m.minutes()];
+        }
+        if (resume.maxTime) {
+            var m = moment.tz(resume.maxTime, config.timeZone);
+            resume.maxTimeLocale = [m.year(), m.month(), m.date(), m.hours(), m.minutes()];
+        }
         return resume;
     }
     getFinalDimensionFromPath(varCode, path) {
