@@ -1,138 +1,80 @@
 class WPwd extends ZDialog {
     async onThis_init(options) {
         this.options = options;
-        this.edPwd.disable();
-        this.edRepetirPwd.disable();
+        if (options.email) this.edEmailPwd.value = options.email;
         this.cmdOk.disable();
         this.errorMsg.hide();
         this.successMsg.hide();
+        this.validaPuedeFinalizar();
     }
 
-
-    async onEdCodigo_change() {
-        let valEmail = validarEmail(this.edEmailPwd.value.trim());
-        this.errorMsg.hide();
-        let obj = {
-            email: this.edEmailPwd.value.trim(),
-            codigo: this.edCodigo.value.trim()
-        }
+    validateEmail(mail) {
+        if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(mail)) return true;
+        return false;
+    }
+    validaPuedeFinalizar() {
         try {
-            if (!valEmail) throw "$[seguridad.panelUsuarios.emailInvalido]";
-            if (this.edCodigo.value == "") throw "$[login.creaPwd.mensajeVacioCodigo]";
-
-            zPost("verificarCode.seg", { obj: obj }, code => {
-
-                if (code.finCodigo) {
-                    this.showDialog("common/WInfo", { message: window.toLang("$[login.creaPwd.mensajeFinCodigoVerificacion]") });
-                    return;
-                }
-
-                if (code) {
-                    this.edPwd.enable();
-                    this.edRepetirPwd.enable();
-                    this.cmdOk.enable();
-                }
-            }, error => {
-                this.edPwd.disable();
-                this.edRepetirPwd.disable();
+            this.errorMsg.hide();
+            this.cmdSendCode.disable();
+            this.cmdOk.disable();
+            let email = this.edEmailPwd.value.trim();
+            if (!email) return;
+            if (!email || !this.validateEmail(email)) throw "La dirección email es inválida";
+            this.cmdSendCode.enable();            
+            let codigo = this.edCodigo.value.trim();
+            if (!codigo) {
                 this.cmdOk.disable();
-                this.showDialog("common/WError", { message: error.toString() })
-            });
-
-        } catch (error) {
-            this.errorMsg.text = window.toLang(error.toString());
+                return;
+            }
+            if (codigo.length < 6) throw "El código ingresado es inválido";
+            let pwd1 = this.edPwd.value.trim();
+            let pwd2 = this.edRepetirPwd.value.trim();
+            if (!pwd1 || !pwd2) throw "Debe ingresa la contraseña y su repetición";
+            if (pwd1 != pwd2) throw "La contraseña y su repeticvión son diferentes";
+            this.cmdOk.enable();
+        } catch(error) {
+            this.cmdOk.disable();
             this.errorMsg.show();
+            this.errorMsg.text = error.toString();
         }
-
-
     }
+    onEdCodigo_change() {this.validaPuedeFinalizar()}
+    onEdEmailPwd_change() {this.validaPuedeFinalizar()}
+    onEdPwd_change() {this.validaPuedeFinalizar()}
+    onEdRepetirPwd_change() {this.validaPuedeFinalizar()}
 
     async onCmdSendCode_click() {
-        let valEmail = validarEmail(this.edEmailPwd.value.trim());
+        let email = this.edEmailPwd.value.trim();
         this.errorMsg.hide();
-        this.successMsg.hide();
-        let obj = {
-            email: this.edEmailPwd.value.trim()
-        }
         try {
-            if (!valEmail) throw "$[seguridad.panelUsuarios.emailInvalido]";
-            this.cmdSendCode.disable();
-            zPost("sendCode.seg", { obj: obj }, code => {
-                this.successMsg.show();
-                this.successMsg.text = window.toLang("$[comunes.envioCorreo]");
-                this.cmdSendCode.enable();
-            }, error => {
-                this.cmdSendCode.enable();
-                this.showDialog("common/WError", { message: error.toString() })
-            });
-
+            await zPost("enviaCodigoCambioPwd.zrepo", {email});
+            this.showDialog("common/WInfo", {message:"Durante los próximos minutos debería llegarle un correo electróniuco con el código de seguridad de seis dígitos que debe pegar más abajo"})
         } catch (error) {
-            this.errorMsg.text = window.toLang(error.toString());
+            this.errorMsg.text = error.toString();
             this.errorMsg.show();
-            this.successMsg.hide();
         }
-
     }
 
     async onCmdOk_click() {
-        let valPwd = validarPassword(this.edPwd.value.trim());
-        let valRepetirPwd = validarPassword(this.edRepetirPwd.value.trim());
-        let valEmail = validarEmail(this.edEmailPwd.value.trim());
-        this.errorMsg.hide();
-        this.successMsg.hide();
-        let controller = this;
-
-        let obj = {
-            pwd: this.edPwd.value.trim(),
-            codigo: this.edCodigo.value.trim(),
-            email: this.edEmailPwd.value.trim()
-        }
-
         try {
-            if (!valEmail) throw "$[seguridad.panelUsuarios.emailInvalido]";
-            if (this.edCodigo.value == "") throw "$[login.creaPwd.mensajeVacioCodigo]";
-            if (this.edPwd.value == "") throw "$[login.creaPwd.mensajeVacioPwd]";
-            if (valPwd.length > 0) throw "$[login.creaPwd.mensajeTituloPwd]" + " " + valPwd;
-            if (this.edRepetirPwd.value == "") throw "$[login.creaPwd.mensajeVacioRepetirPwd]";
-            if (valRepetirPwd.length > 0) throw "$[login.creaPwd.mensajeTituloRepitePwd]" + " " + valRepetirPwd;
-            if (this.edPwd.value != this.edRepetirPwd.value) throw "$[login.creaPwd.mensajeCoincidirCampos]";
-
+            this.errorMsg.hide();
+            let email = this.edEmailPwd.value.trim();
+            let codigo = this.edCodigo.value.trim();            
+            let pwd = this.edPwd.value.trim();
             this.cmdOk.disable();
-            zPost("createPwd.seg", { obj: obj }, code => {
-
-
-                if (code.existePwd) {
-                    this.errorMsg.show();
-                    this.errorMsg.text = window.toLang("$[login.creaPwd.mensajePwdRegistrado]");
-                    this.cmdOk.enable();
-                    return;
-                }
-
-                this.errorMsg.hide();
-                this.successMsg.show();
-                this.successMsg.text = window.toLang("$[login.creaPwd.mensajeCreaPwdOK]");
-
-
-                setInterval(function () {
-                    controller.cmdOk.enable();
-                    controller.close();
-                    controller.successMsg.hide();
-                }, 3000);
-
-            }, error => {
-                this.cmdOk.enable();
-                this.showDialog("common/WError", { message: error.toString() })
-            });
-
-        } catch (error) {
-            this.errorMsg.text = window.toLang(error.toString());
+            this.cmdCancel.disable();
+            this.cmdSendCode.disable();
+            await zPost("cambiarPwd.zrepo", {email, codigo, pwd})
+            this.successMsg.text = "Contraseña Modicada";
+            this.successMsg.show();
+            setTimeout(_ => this.close(), 2000);
+        } catch(error) {
             this.errorMsg.show();
-        }
+            this.errorMsg.text = error.toString();
+            this.cmdOk.enable();
+            this.cmdCancel.enable();
+        }        
     }
-
-
-
-
 
     onCmdCancel_click() { this.cancel() }
 }

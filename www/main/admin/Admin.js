@@ -10,7 +10,8 @@ class Admin extends ZCustomController {
     async seleccionaOpcion(idOpcion) {
         const paneles = {
             opDimensiones:"./Dimensions",
-            opDataSets:"./DataSets"
+            opDataSets:"./DataSets",
+            opUsuarios:"./Users"
         }
         $(this.sideBar.view).find(".opcion-side-bar").removeClass("opcion-side-bar-activa");
         let panel = paneles[idOpcion];

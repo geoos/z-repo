@@ -2,85 +2,73 @@
     <div class="modal-dialog modal-danger modal-dialog-centered modal-lg" role="document">
         <div class="modal-content bg-gradient-danger">
             <div class="modal-header">
-                <h6 id="title" class="modal-title"> $[login.creaPwd.tituloPwd]</h6>
+                <h6 id="title" class="modal-title"> Crear Nueva Contraseña</h6>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
             <div class="modal-header">
-                <div class="col ml-2 text-justify mr-2">
-                   
-                    <p> 1- $[login.creaPwd.reglaIngresarEmail]</p>
-                    <p> 2- $[login.creaPwd.reglaPresionarEnviar]</p>
-                    <p> 3- $[login.creaPwd.reglaCopiarCodigo]</p>
-                    <p> 4- $[login.creaPwd.reglaFinalizar]</p>
+                <div class="col ml-2 text-justify mr-2">                   
+                    <p> 1- Ingrese su dirección de Correo Electrónico</p>
+                    <p> 2- Presiones "Enviar Código"</p>
+                    <p> 3- Espere por Correo con Código de 6 dígitos. Cópielo y Péguelo más abajo</p>
+                    <p> 4- Ingrese nueva Contraseña, su repetición y presione Finalizar</p>
             </div>
         </div>
-
-            <div class="modal-body">
-                <div id="successMsg" class="alert alert-success my-2"></div>
-                <div id="errorMsg" class="alert alert-warning my-2"></div>
-                <div class="container">
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label for="edEmailPwd">$[comunes.email]</label>
-                                <input id="edEmailPwd" type="text" class="form-control">
-                          
-                            </div>        
+        <div class="modal-body">
+            <div id="successMsg" class="alert alert-success my-2"></div>
+            <div id="errorMsg" class="alert alert-warning my-2"></div>
+            <div class="container">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edEmailPwd">Dirección Email</label>
+                            <input id="edEmailPwd" type="text" class="form-control" data-z-autochange-delay="300">                        
+                        </div>        
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">                       
+                            <button id="cmdSendCode" type="button" class="btn btn-sm btn-outline-success float-right">
+                                <i class="far fa-check-circle float-left mt-1 mr-2"></i>
+                                Enviar Código
+                            </button>
+                        </div>        
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edCodigo">Código Recibido</label>
+                            <input id="edCodigo" type="text" class="form-control" data-z-autochange-delay="300">                          
+                        </div>        
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edPwd">Nueva Contraseña</label>
+                            <input id="edPwd" type="password" class="form-control" data-z-autochange-delay="300">
                         </div>
                     </div>
-                       
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group">                       
-                                <button id="cmdSendCode" type="button" class="btn btn-sm btn-outline-success float-right">
-                                    <i class="far fa-check-circle float-left mt-1 mr-2"></i>
-                                    $[login.creaPwd.enviarCodigo]
-                                </button>
-                            </div>        
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edRepetirPwd">Repita la Nueva Contraseña</label>
+                            <input id="edRepetirPwd" type="password" class="form-control" data-z-autochange-delay="300">
                         </div>
                     </div>
-                  
-
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label for="edCodigo">$[login.creaPwd.codigoPwd]</label>
-                                <input id="edCodigo" type="text" class="form-control">
-                          
-                            </div>        
-                        </div>
-                    </div>
-
-                 
-
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label for="edPwd">$[login.creaPwd.pwd]</label>
-                                <input id="edPwd" type="password" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label for="edRepetirPwd">$[login.creaPwd.repetirPwd]</label>
-                                <input id="edRepetirPwd" type="password" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                
-                </div>    
-            </div>
-            <div class="modal-footer">
-                <button id="cmdOk" type="button" class=" btn btn-sm btn-outline-success">
-                    <i class="far fa-check-circle float-left mt-1 mr-2"></i>
-                    $[comunes.guardar]
-                </button>
-                <button id="cmdCancel" type="button" class="btn btn-sm btn-secondary">$[comunes.cerrar]</button>
+                </div>            
             </div>    
         </div>
+        <div class="modal-footer">
+            <button id="cmdOk" type="button" class=" btn btn-sm btn-outline-success">
+                <i class="far fa-check-circle float-left mt-1 mr-2"></i>
+                Aceptar
+            </button>
+            <button id="cmdCancel" type="button" class="btn btn-sm btn-secondary">Cancelar</button>
+        </div>    
     </div>
 </div>

@@ -28,7 +28,7 @@ class Login extends ZCustomController {
     }
 
     onCmdOlvidoPwd_click() {
-        this.showDialog("./WPwd", {});
+        this.showDialog("./WPwd", {email:this.edEmail.value.trim()});
     }
 }
 ZVC.export(Login);
