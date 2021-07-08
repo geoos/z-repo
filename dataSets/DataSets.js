@@ -93,12 +93,47 @@ class DataSets {
         }
     } 
 
-    
-    buildVarPostRow(dsRow, trigger) {
-        let varRow = {variable:trigger.variable, time:dsRow.time, data:{}};
-        if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
-        if (isNaN(varRow.value)) return null;
-        else varRow.value = dsRow[trigger.value];
+    getTimeForVarPost(dsRow, trigger) {
+        if (trigger.forceUTCDay) {
+            let timeZone = require("../lib/Config").config.timeZone;
+            let utc = moment.tz(dsRow.time, "UTC");
+            let m = moment.tz(timeZone);
+            m.year(utc.year());
+            m.month(utc.month());
+            m.date(utc.date());
+            m.hour(0); m.minute(0); m.second(0); m.millisecond(0);
+            return m.valueOf();
+        } else {
+            return dsRow.time;
+        }
+    }
+    async buildVarPostRow(dsCode, dsRow, trigger) {
+        let time = this.getTimeForVarPost(dsRow, trigger);
+        let varRow = {variable:trigger.variable, time, data:{}};
+        if (trigger.differential) {
+            let col = await mongo.collection(dsCode);
+            let filter = {time:{$lt:dsRow.time}};
+            if (trigger.discriminator) {
+                filter[trigger.discriminator] = dsRow[trigger.discriminator];
+            }
+            let res = await col.find(filter).sort({time:-1}).limit(1).toArray();
+            if (!res.length) return null;
+            let prevRow = res[0];
+            //console.log("Differential POST Var Row", prevRow);
+            let difSecs = (dsRow.time - prevRow.time) / 1000;
+            let difValue = dsRow[trigger.value] - prevRow[trigger.value];
+            //console.log(dsCode + ":" + difSecs + " [secs], " + dsRow[trigger.value] + " - " + prevRow[trigger.value] + " = " + difValue);
+            if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
+                //console.log("treshold Exceded");
+                return null;
+            }
+            varRow.value = difValue;
+            //console.log("DiferenciaL: ", varRow.value);
+        } else {
+            if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
+            if (isNaN(varRow.value)) return null;
+            else varRow.value = dsRow[trigger.value];
+        }
         if (trigger.data) {
             trigger.data.forEach(field => {
                 if (field.from) varRow.data[field.to] = dsRow[field.from];
@@ -169,12 +204,14 @@ class DataSets {
             }
             let triggers = (ds.triggers || []).filter(t => (t.type == "postVariable"));
             for (let trigger of triggers) {
-                let varRows = rows.reduce((list, dsRow) => {
-                    let varPostRow = this.buildVarPostRow(dsRow, trigger);
-                    if (varPostRow) list.push(varPostRow);
-                    return list;
-                }, []);
-                await variables.postDataBatch(varRows);
+                let varRows = [];
+                for (let dsRow of rows) {
+                    let varPostRow = await this.buildVarPostRow(dsCode, dsRow, trigger);
+                    if (varPostRow) varRows.push(varPostRow);
+                }
+                if (varRows.length) {
+                    await variables.postDataBatch(varRows);
+                }
             }
             triggers = (ds.triggers || []).filter(t => (t.type == "postDimension"));
             for (let trigger of triggers) {
