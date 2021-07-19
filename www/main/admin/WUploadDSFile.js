@@ -149,6 +149,68 @@ class WUploadDSFile extends ZDialog {
         })
     }
 
+    readCSV() {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {    
+                try { 
+                    this.rows = [];
+                    let lines = e.target.result.split("\n");      
+                    let separator = this.dsImport.separator || ",";      
+                    let timeZone = this.edTimeZone.value;
+                    let dsCols = this.ds.columns.reduce((map, col) => {
+                        map[col.code] = col;
+                        return map;
+                    }, {});
+                    for (let i=0; i<lines.length; i++) {
+                        if (this.dsImport.skipRows && i < this.dsImport.skipRows) continue;
+                        let row = {}, line = lines[i];
+                        let fields = line.split(separator);
+                        if (fields.length < 2) continue;
+                        Object.keys(this.dsImport.mapFrom).forEach(colName => {
+                            let m = this.dsImport.mapFrom[colName];
+                            if (typeof m == "number") {
+                                let v = fields[m];
+                                if (v.startsWith('"') && v.endsWith('"') || v.startsWith("'") && v.endsWith("'")) {
+                                    v = v.substr(1, v.length - 2);
+                                }
+                                if (dsCols[colName]) {
+                                    let dType = dsCols[colName].type;
+                                    if (dType == "number") {
+                                        v = parseFloat(v);
+                                        if (!isNaN(v)) row[colName] = v;
+                                    } else {
+                                        row[colName] = v;
+                                    }
+                                } else {
+                                    row[colName] = v;
+                                }
+                            } else if (typeof m == "object") {
+                                if (m.prepend) {
+                                    let v = m.prepend + fields[m.columnIndex];
+                                    row[colName] = v;
+                                } else if (m.timeFormat) {
+                                    let v = fields[m.columnIndex];
+                                    if (v.startsWith('"') && v.endsWith('"') || v.startsWith("'") && v.endsWith("'")) {
+                                        v = v.substr(1, v.length - 2);
+                                    }
+                                    let mom = moment.tz(v, m.timeFormat, timeZone);
+                                    row[colName] = mom.valueOf();
+                                }
+                            }
+                        });
+                        this.rows.push(row);
+                    }
+                } catch(error) {
+                    reject(error);
+                }
+                resolve();
+            }
+            reader.onerror = error => reject(error);
+            reader.readAsText(this.edFile.view.files[0]);
+        })
+    }
+
     async onCmdOk_click() {
         this.importing = true;
         this.edTime.disable();

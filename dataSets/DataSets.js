@@ -122,6 +122,7 @@ class DataSets {
             //console.log("Differential POST Var Row", prevRow);
             let difSecs = (dsRow.time - prevRow.time) / 1000;
             let difValue = dsRow[trigger.value] - prevRow[trigger.value];
+            if (trigger.discardNegatives && difValue < 0) return null;
             //console.log(dsCode + ":" + difSecs + " [secs], " + dsRow[trigger.value] + " - " + prevRow[trigger.value] + " = " + difValue);
             if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
                 //console.log("treshold Exceded");
