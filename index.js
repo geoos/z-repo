@@ -36,8 +36,8 @@ async function startHTTPServer() {
         let port = config.httpPort;
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {
-            console.log("[ZRepo HTTP Server] Listenning at Port " + port);
-            logs.info("[ZRepo HTTP Server] Listenning at Port " + port)
+            console.log("[ZRepo HTTP Server 0.55] Listenning at Port " + port);
+            logs.info("[ZRepo HTTP Server 0.55] Listenning at Port " + port)
         });
     } catch(error) {
         console.error("Can't start HTTP Server", error);

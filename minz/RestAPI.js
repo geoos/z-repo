@@ -131,8 +131,21 @@ class RestAPI {
             try {
                 await security.checkPrivilege(this.getAuth(req), "dataSet-" + req.params.code + "-write");
                 res.setHeader('Content-Type', 'application/json');
-                let d = await dataSets.importRow(req.params.code, req.body);
-                res.send(JSON.stringify(d));
+                if (Array.isArray(req.body)) {
+                    let respArray = [];
+                    for (let row of req.body) {
+                        try {
+                            let d = await dataSets.importRow(req.params.code, row);
+                            respArray.push(d);    
+                        } catch(e) {
+                            respArray.push({status:"error", message:e.toString()});
+                        }
+                    }
+                    res.send(JSON.stringify(respArray));
+                } else {
+                    let d = await dataSets.importRow(req.params.code, req.body);
+                    res.send(JSON.stringify(d));
+                }                
             } catch(error) {
                 console.error(error);
                 if (typeof error == "string") {
