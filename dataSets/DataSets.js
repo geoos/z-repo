@@ -5,6 +5,7 @@ const logs = require("../lib/Logs");
 const http = require("http");
 const https = require("https");
 const moment = require("moment-timezone");
+const CronJob = require('cron').CronJob;
 
 class DataSets {
     static get instance() {
@@ -20,6 +21,9 @@ class DataSets {
     get dataSets() {
         return require("./../lib/Config").config.dataSets;
     }
+    get timeZone() {
+        return require("./../lib/Config").config.timeZone;
+    }
 
     getDataSets() {
         return Object.keys(this.dataSets).reduce((list, dsCode) => {
@@ -32,10 +36,26 @@ class DataSets {
     async init() {
         if (!mongo.isInitialized()) return;
         try {
+            if (this.cronJobs) {
+                for (let job of this.cronJobs) job.stop();            
+            }
+            this.cronJobs = [];
             let dss = this.getDataSets();
             for (let ds of dss) {
                 let col = await mongo.collection(ds.code);
                 await col.createIndex({time:1});
+                if (ds.imports) {
+                    for (let i=0; i<ds.imports.length; i++) {
+                        let imp = ds.imports[i];
+                        if (imp.type == "sync" && imp.cron) {
+                            let job = new CronJob(imp.cron, _ => {
+                                this.syncDataSet(ds.code, i);
+                            }, null, true, this.timeZone);
+                            this.cronJobs.push(job);
+                            job.start();
+                        }
+                    }
+                }
             }
             await logs.debug("DataSets initialized from Config")
         } catch (error) {

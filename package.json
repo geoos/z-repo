@@ -25,6 +25,7 @@
   "homepage": "https://github.com/geoos/z-repo#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cron": "^1.8.2",
     "express": "^4.17.1",
     "hjson": "^3.2.1",
     "moment-timezone": "^0.5.31",
