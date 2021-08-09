@@ -24,12 +24,14 @@
   },
   "homepage": "https://github.com/geoos/z-repo#readme",
   "dependencies": {
+    "aedes": "^0.46.1",
     "bcryptjs": "^2.4.3",
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "hjson": "^3.2.1",
     "moment-timezone": "^0.5.31",
     "mongodb": "^3.6.2",
+    "mosca": "^2.8.3",
     "nodemailer": "^6.5.0",
     "nodemon": "^2.0.4",
     "uuid": "^8.3.2"
