@@ -36,9 +36,82 @@ async function startHTTPServer() {
         let port = config.httpPort;
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {
-            console.log("[ZRepo HTTP Server 0.56] Listenning at Port " + port);
-            logs.info("[ZRepo HTTP Server 0.56] Listenning at Port " + port)
+            console.log("[ZRepo HTTP Server 0.59] Listenning at Port " + port);
+            logs.info("[ZRepo HTTP Server 0.59] Listenning at Port " + port)
         });
+        if (config.mqttPort) {
+            const aedes = require("aedes")();
+            this.aedesServer = require('net').createServer(aedes.handle);
+            aedes.on("publish",  (packet, client) => {
+                /*
+                let topic = "NoT", payload = "NoP";
+                if (packet.topic) topic = packet.topic;
+                if (packet.payload) payload = packet.payload.toString();
+                console.log("publish1:", topic, payload);
+                */
+                if (client && packet.payload && packet.topic) {
+                    if (packet.topic == client.dataSetCode) {
+                        let msg = packet.payload.toString();
+                        //console.log("publish", client.dataSetCode + " => " + msg);
+                        let json;
+                        try {
+                            json = JSON.parse(msg);
+                        } catch(error) {
+                            json = null;
+                        }
+                        if (json) {
+                            let rows = Array.isArray(json)?json:[json];
+                            require("./dataSets/DataSets").importBatch(client.dataSetCode, rows)
+                                .then(_ => {console.log("registrado")})
+                                .catch(error => {
+                                    console.error("[MQTT Publish] DataSet " + client.dataSetCode, error);
+                                    logs.error("[MQTT Publish] DataSet " + client.dataSetCode + ": " + error.toString());
+                                });
+                        }
+                    }
+                }
+            });
+            aedes.authenticate = (client, username, password, callback) => {
+                let pwd = password?password.toString():"";
+                config.getMQTTPubAuth()
+                    .then(auth => {
+                        // User cam be null (local subscribers if no mqtt.subUser is configured),
+                        // mqtt.subUser if configured or dataSet/token to publish to topic dataSet                        
+                        // Check subscribe authorization
+                        client.canSubscribe = false;
+                        if (!auth) client.canSubscribe = true;
+                        if (auth.user == username && auth.pwd == pwd) client.canSubscribe = true;
+                        // Check publish authorization
+                        client.canPublish = false;
+                        if (username) {
+                            if (config.config.dataSets && config.config.dataSets[username]) {
+                                let dataSet = config.config.dataSets[username];
+                                if (config.config.tokens[pwd]) {
+                                    let token = config.config.tokens[pwd];
+                                    if (token["dataSet-" + username + "-write"]) {
+                                        client.canPublish = true;
+                                        client.dataSetCode = username;
+                                    }
+                                }
+                            }
+                        }
+                        console.log("AEDES AUth", username, pwd, client.canSubscribe, client.canPublish, client.dataSetCode);
+                        if (client.canPublish || client.canSubscribe) {
+                            callback(null, true);
+                        } else {
+                            callback(new Error("Not Authorized"), false)
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        logs.error(error.toString());
+                    });
+            }
+            this.aedesServer.listen(config.mqttPort, _ => {
+                console.log("[ZRepo] Aedes Plain MQTT Server Listenning at Port " + config.mqttPort);
+                logs.info("[ZRepo] Aedes Plain MQTT Server Listenning at Port " + config.mqttPort)
+            })
+        }
     } catch(error) {
         console.error("Can't start HTTP Server", error);
         logs.error("Can't start server:" + error.toString())
