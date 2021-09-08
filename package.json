@@ -29,6 +29,7 @@
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "hjson": "^3.2.1",
+    "kafkajs": "^1.15.0",
     "moment-timezone": "^0.5.31",
     "mongodb": "^3.6.2",
     "mosca": "^2.8.3",

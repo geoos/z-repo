@@ -6,6 +6,7 @@ const http = require("http");
 const https = require("https");
 const moment = require("moment-timezone");
 const CronJob = require('cron').CronJob;
+const {Kafka} = require("kafkajs");
 
 class DataSets {
     static get instance() {
@@ -39,7 +40,14 @@ class DataSets {
             if (this.cronJobs) {
                 for (let job of this.cronJobs) job.stop();            
             }
+            if (this.kafkaClientsConsumers) {
+                for (let k of this.kafkaClientsConsumers) {
+                    await k.consumer.stop();
+                    await k.consumer.disconnect();
+                }
+            }
             this.cronJobs = [];
+            this.kafkaClientsConsumers = [];
             let dss = this.getDataSets();
             for (let ds of dss) {
                 let col = await mongo.collection(ds.code);
@@ -53,6 +61,34 @@ class DataSets {
                             }, null, true, this.timeZone);
                             this.cronJobs.push(job);
                             job.start();
+                        } else if (imp.type == "kafka-topic") {
+                            let kafka = new Kafka(imp.clientConfig);
+                            let consumer = kafka.consumer(imp.consumerConfig);
+                            await consumer.subscribe({topic:imp.topic});
+                            try {
+                                await consumer.connect();
+                                await consumer.run({
+                                    eachMessage: async ({ topic, partition, message }) => {
+                                        console.log({
+                                            key: message.key.toString(),
+                                            value: message.value.toString(),
+                                            headers: message.headers,
+                                        })
+                                        try {
+                                            let row = JSON.parse(message.value.toString());
+                                            await this.importRow(ds.code, row);
+                                        } catch(error) {
+                                            console.error(error);
+                                            await logs.error("Error importing dataSet row from Kafka topic: " + error.toString())
+                                        }                                        
+                                    }
+                                })
+                                await logs.info("Listening on kafka topic " + imp.topic);
+                            } catch(error) {
+                                console.error(error);
+                                await logs.error("Cannot connect to kafka topic " + imp.topic + ". " + error.toString());
+                            }
+
                         }
                     }
                 }
