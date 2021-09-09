@@ -36,19 +36,20 @@ async function startHTTPServer() {
         let port = config.httpPort;
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {
-            console.log("[ZRepo HTTP Server 0.59] Listenning at Port " + port);
-            logs.info("[ZRepo HTTP Server 0.59] Listenning at Port " + port)
+            console.log("[ZRepo HTTP Server 0.62] Listenning at Port " + port);
+            logs.info("[ZRepo HTTP Server 0.62] Listenning at Port " + port)
         });
         if (config.mqttPort) {
             const aedes = require("aedes")();
             this.aedesServer = require('net').createServer(aedes.handle);
             aedes.on("publish",  (packet, client) => {
-                /*
+                // DBG:
+                console.log("Publish triggered:", client?("Client: " + client.id):"No client");
                 let topic = "NoT", payload = "NoP";
                 if (packet.topic) topic = packet.topic;
                 if (packet.payload) payload = packet.payload.toString();
-                console.log("publish1:", topic, payload);
-                */
+                console.log("  => publish1:", topic, payload, (client && client.dataSetCode)?("DataSet:" + client.dataSetCode):"No CLient or DataSet");
+                //
                 if (client && packet.payload && packet.topic) {
                     if (packet.topic == client.dataSetCode) {
                         let msg = packet.payload.toString();
@@ -57,6 +58,7 @@ async function startHTTPServer() {
                         try {
                             json = JSON.parse(msg);
                         } catch(error) {
+                            console.error(error);
                             json = null;
                         }
                         if (json) {
@@ -67,8 +69,14 @@ async function startHTTPServer() {
                                     console.error("[MQTT Publish] DataSet " + client.dataSetCode, error);
                                     logs.error("[MQTT Publish] DataSet " + client.dataSetCode + ": " + error.toString());
                                 });
+                        } else {
+                            console.log("  => discard: Invalid json msg");
                         }
+                    } else {
+                        console.log("  => discard: topic != dataSet");
                     }
+                } else {
+                    console.log("  => discard: client, payload or topic missing");
                 }
             });
             aedes.authenticate = (client, username, password, callback) => {

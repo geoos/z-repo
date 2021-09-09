@@ -1,23 +1,21 @@
 class WFiltrosMinZ extends ZDialog {
-    onThis_init(options) {
+    async onThis_init(options) {
         this.caret.hide();
-        this.consulta = GEOOSQuery.cloneQuery(options.consulta);
-        this.consulta.construyeDescripcionFiltros()
-            .then(_ => {
-                this.arbol = this.consulta.getArbolFiltros();
-                this.cellWidth = 155; this.cellHeight = 72;
-                this.rectWidth = 115; this.rectHeight = 56;
-                let w = (this.arbol.max.x + 1) * this.cellWidth,
-                    h = (this.arbol.max.y + 1) * this.cellHeight;
-                this.stage.size = {width:w, height:h};
-                this.konvaStage = new Konva.Stage({
-                    container:this.stage.view,
-                    width:w, height:h
-                })
-                this.konvaLayer = new Konva.Layer();
-                this.konvaStage.add(this.konvaLayer);
-                this.refresca()
-            })
+        this.consulta = MinZQuery.cloneQuery(options.consulta);
+        await this.consulta.construyeDescripcionFiltros()
+        this.arbol = await this.consulta.getArbolFiltros();
+        this.cellWidth = 155; this.cellHeight = 72;
+        this.rectWidth = 115; this.rectHeight = 56;
+        let w = (this.arbol.max.x + 1) * this.cellWidth,
+            h = (this.arbol.max.y + 1) * this.cellHeight;
+        this.stage.size = {width:w, height:h};
+        this.konvaStage = new Konva.Stage({
+            container:this.stage.view,
+            width:w, height:h
+        })
+        this.konvaLayer = new Konva.Layer();
+        this.konvaStage.add(this.konvaLayer);
+        this.refresca()            
     }
 
     refresca() {
@@ -48,7 +46,7 @@ class WFiltrosMinZ extends ZDialog {
             padding: 10,
             align:"center",
             verticalAlign:"middle",
-            text:this.consulta.variable.name + "\n[" + this.consulta.variable.options.unit + "]"
+            text:this.consulta.variable.name +(this.consulta.variable.options?"\n[" + this.consulta.variable.options.unit + "]":"")
         })
         this.konvaLayer.add(text);
         this.dibujaNodos(0,0, this.arbol.nodos);
@@ -183,8 +181,8 @@ class WFiltrosMinZ extends ZDialog {
         this.enterNodo(nodo);
         try {
             let rows = [];
-            let n = await this.consulta.zRepoServer.client.cuentaValores(nodo.clasificador.dimensionCode);
-            let dimVal = await this.consulta.zRepoServer.client.getValores(nodo.clasificador.dimensionCode, null, null, 0, (n > 50?50:n));
+            let n = await this.consulta.zRepoClient.cuentaValores(nodo.clasificador.dimensionCode);
+            let dimVal = await this.consulta.zRepoClient.getValores(nodo.clasificador.dimensionCode, null, null, 0, (n > 50?50:n));
             rows.push({
                 code:"sel-filas",
                 icon:"fas fa-list",
@@ -244,7 +242,7 @@ class WFiltrosMinZ extends ZDialog {
                 searchPlaceholder:"Buscar",
                 onSearch:async textFilter => {
                     console.log("text filter", textFilter, nodo);
-                    let n = await this.consulta.zRepoServer.client.cuentaValores(nodo.clasificador.dimensionCode, textFilter);
+                    let n = await this.consulta.zRepoClient.cuentaValores(nodo.clasificador.dimensionCode, textFilter);
                     console.log("n", n);
                     if (!n) return [{
                         tipo:"warng",
@@ -252,7 +250,7 @@ class WFiltrosMinZ extends ZDialog {
                         code:"warn-none",
                         label:"No se encontraron resultados"
                     }];
-                    let dimVal = await this.consulta.zRepoServer.client.getValores(nodo.clasificador.dimensionCode, textFilter, null, 0, (n > 50?50:n));
+                    let dimVal = await this.consulta.zRepoClient.getValores(nodo.clasificador.dimensionCode, textFilter, null, 0, (n > 50?50:n));
                     let items = dimVal.map(r => ({
                         tipo:"valor",
                         icon:"fas fa-bullseye",
@@ -279,8 +277,8 @@ class WFiltrosMinZ extends ZDialog {
 
     releeYRefresca() {
         this.consulta.construyeDescripcionFiltros()
-        .then(_ => {
-            this.arbol = this.consulta.getArbolFiltros();
+        .then(async _ => {
+            this.arbol = await this.consulta.getArbolFiltros();
             this.refresca();
         })
     }

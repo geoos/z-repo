@@ -131,22 +131,25 @@ class DataSets {
         let time = this.getTimeForVarPost(dsRow, trigger);
         let varRow = {variable:trigger.variable, time, data:{}};
         if (trigger.differential) {
+            let difValue;
             let col = await mongo.collection(dsCode);
             let filter = {time:{$lt:dsRow.time}};
             if (trigger.discriminator) {
                 filter[trigger.discriminator] = dsRow[trigger.discriminator];
             }
             let res = await col.find(filter).sort({time:-1}).limit(1).toArray();
-            if (!res.length) return null;
-            let prevRow = res[0];
-            //console.log("Differential POST Var Row", prevRow);
-            let difSecs = (dsRow.time - prevRow.time) / 1000;
-            let difValue = dsRow[trigger.value] - prevRow[trigger.value];
-            if (trigger.discardNegatives && difValue < 0) return null;
-            //console.log(dsCode + ":" + difSecs + " [secs], " + dsRow[trigger.value] + " - " + prevRow[trigger.value] + " = " + difValue);
-            if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
-                //console.log("treshold Exceded");
-                return null;
+            if (!res.length) {
+                difValue = dsRow[trigger.value];
+            } else {
+                let prevRow = res[0];
+                //console.log("Differential POST Var Row", prevRow);
+                let difSecs = (dsRow.time - prevRow.time) / 1000;
+                difValue = dsRow[trigger.value] - prevRow[trigger.value];
+                if (trigger.discardNegatives && difValue < 0) {
+                    difValue = dsRow[trigger.value];
+                } else if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
+                    difValue = dsRow[trigger.value];
+                }
             }
             varRow.value = difValue;
             //console.log("DiferenciaL: ", varRow.value);

@@ -1,5 +1,6 @@
 class Dimensions extends ZCustomController {
     onThis_init() {
+
         this.edDimension.setGroups(window.zrepo.dimensionsTree, "name", "dimensions");
         this.refreshOptions();
         this.refresh();
@@ -42,7 +43,7 @@ class Dimensions extends ZCustomController {
         this.refresh()
     }
 
-    refreshOptions() {
+    refreshOptions() {        
         let dim = this.edDimension.selectedRow;
         if (!dim) return;
         if (!dim.sync) {
@@ -50,6 +51,26 @@ class Dimensions extends ZCustomController {
             return;            
         }
         this.cmdSync.show();
+        this.minzQuery = new MinZQuery(window.zRepoClient, dim);        
+        this.refreshFilters();
+    }
+
+    async refreshFilters() {
+        if (!this.minzQuery) {            
+            this.filtro.html = "";
+            return;
+        }
+        await this.minzQuery.construyeDescripcionFiltros();
+        let desc = this.minzQuery.descripcionFiltros.map(f => (f.etiqueta)).join(" y ");
+        this.filtro.text = desc || "Filtrar"
+    }
+
+    onFiltro_click() {
+        this.showDialog("common/WMinZFilters", {consulta:this.minzQuery}, q => {
+            this.minzQuery = q;
+            this.refreshFilters();
+            this.refresh();
+        })
     }
 
     onCmdSync_click() {
@@ -82,11 +103,14 @@ class Dimensions extends ZCustomController {
     }
     
     async onRowsList_getRowsCount() {
-        let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
+        if (!this.minzQuery) return 0;
+        //let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
+        let n = await this.minzQuery.query({format:"dim-rows-count"});
         return n;
     }
-    async onRowsList_getRowsPage(startRow, nRows) {
-        let page = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow, nRows})
+    async onRowsList_getRowsPage(startRow, nRows) {        
+        //let page = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow, nRows})
+        let page = await this.minzQuery.query({format:"dim-rows", startRow, nRows});
         return page;
     }
     async onCmdAdd_click() {

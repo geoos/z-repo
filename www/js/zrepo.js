@@ -1,6 +1,7 @@
 class ZRepo {
     constructor(config) {
         this.config = config;
+        console.log("config", config);
     }
 
     get domains() {
