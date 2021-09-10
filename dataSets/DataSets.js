@@ -101,16 +101,40 @@ class DataSets {
 
     async getRowsCount(dsCode, fromTime, toTime, filter) {
         try {
+            let f = {time:{"$gte":fromTime, "$lte":toTime}}
+            if (filter) {
+                let ds = this.dataSets[dsCode];
+                console.log("ds", ds);
+                let or = [];
+                for (let c of ds.columns) {
+                    let colFilter = {};
+                    colFilter[c.code] = new RegExp('.*' + filter + '.*');
+                    or.push(colFilter);
+                }
+                f = {$and:[f, {$or:or}]}
+            }
             let col = await mongo.collection(dsCode);
-            return col.find().count();
+            return col.find(f).count();
         } catch (error) {
             throw error;
         }
     }
     async getRows(startRow, nRows, dsCode, fromTime, toTime, filter) {
         try {
+            let f = {time:{"$gte":fromTime, "$lte":toTime}}
+            if (filter) {
+                let ds = this.dataSets[dsCode];
+                console.log("ds", ds);
+                let or = [];
+                for (let c of ds.columns) {
+                    let colFilter = {};
+                    colFilter[c.code] = new RegExp('.*' + filter + '.*');
+                    or.push(colFilter);
+                }
+                f = {$and:[f, {$or:or}]}
+            }
             let col = await mongo.collection(dsCode);
-            let rows = await col.find().sort({time:1}).skip(startRow).limit(nRows).map(r => {
+            let rows = await col.find(f).sort({time:1}).skip(startRow).limit(nRows).map(r => {
                 r._id = r._id.toString()
                 return r;
             }).toArray();

@@ -38,7 +38,7 @@ class Dimensions extends ZCustomController {
         this.rowsList.refresh();
     }
 
-    onEdDimension_change() {
+    async onEdDimension_change() {
         this.refreshOptions();
         this.refresh()
     }
@@ -48,9 +48,9 @@ class Dimensions extends ZCustomController {
         if (!dim) return;
         if (!dim.sync) {
             this.cmdSync.hide();
-            return;            
+        } else {
+            this.cmdSync.show();
         }
-        this.cmdSync.show();
         this.minzQuery = new MinZQuery(window.zRepoClient, dim);        
         this.refreshFilters();
     }
@@ -64,6 +64,8 @@ class Dimensions extends ZCustomController {
         let desc = this.minzQuery.descripcionFiltros.map(f => (f.etiqueta)).join(" y ");
         this.filtro.text = desc || "Filtrar"
     }
+
+    onEdTextFilter_change() {this.refresh()}
 
     onFiltro_click() {
         this.showDialog("common/WMinZFilters", {consulta:this.minzQuery}, q => {
@@ -104,13 +106,15 @@ class Dimensions extends ZCustomController {
     
     async onRowsList_getRowsCount() {
         if (!this.minzQuery) return 0;
+        let textFilter = this.edTextFilter.value.trim();
         //let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
-        let n = await this.minzQuery.query({format:"dim-rows-count"});
+        let n = await this.minzQuery.query({format:"dim-rows-count", textFilter});
         return n;
     }
     async onRowsList_getRowsPage(startRow, nRows) {        
         //let page = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow, nRows})
-        let page = await this.minzQuery.query({format:"dim-rows", startRow, nRows});
+        let textFilter = this.edTextFilter.value.trim();
+        let page = await this.minzQuery.query({format:"dim-rows", textFilter, startRow, nRows});
         return page;
     }
     async onCmdAdd_click() {
