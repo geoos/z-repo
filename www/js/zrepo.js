@@ -50,4 +50,23 @@ class ZRepo {
         })
         return domains;
     }
+    get variablesTree() {
+        let domains = this.domains;
+        domains.forEach(d => d.variables = []);
+        Object.keys(this.config.variables).forEach(varCode => {
+            let p = varCode.indexOf(".");
+            if (p) {
+                let variable = this.config.variables[varCode];
+                variable.code = varCode;
+                let domain = varCode.substr(0, p);
+                let d = domains.find(d => d.code == domain);
+                if (d) d.variables.push(variable)
+            }
+        });
+        domains = domains.filter(d => d.variables.length);
+        domains.forEach(d => {
+            d.variables.sort((v1, v2) => v1.name > v2.name?1:-1)
+        })
+        return domains;
+    }
 }

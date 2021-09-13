@@ -335,11 +335,16 @@ class ZRepoClient {
     extraeAcumulador(resultado, acumulador) {
         if (!resultado) return null;
         switch(acumulador) {
-            case "sum": return resultado.value !== undefined?resultado.value:null;
+            case "sum":
+            case "value": return resultado.value !== undefined?resultado.value:null;
             case "min": return resultado.min !== undefined?resultado.min:null;
             case "max": return resultado.max !== undefined?resultado.max:null;
             case "n"  : return resultado.n !== undefined?resultado.n:0;
-            case "avg": return (resultado.n > 0?resultado.value / resultado.n:null);
+            case "avg": 
+                if (resultado.n > 0) {
+                    resultado.avg = resultado.value / resultado.n;
+                }
+                return resultado.avg;
             default: throw "Acumulador '" + acumulador + "' no manejado";
         }
     }

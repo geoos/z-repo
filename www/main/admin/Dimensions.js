@@ -1,6 +1,5 @@
 class Dimensions extends ZCustomController {
     onThis_init() {
-
         this.edDimension.setGroups(window.zrepo.dimensionsTree, "name", "dimensions");
         this.refreshOptions();
         this.refresh();
@@ -51,7 +50,7 @@ class Dimensions extends ZCustomController {
         } else {
             this.cmdSync.show();
         }
-        this.minzQuery = new MinZQuery(window.zRepoClient, dim);        
+        this.minzQuery = new MinZQuery(window.zRepoClient, dim);
         this.refreshFilters();
     }
 

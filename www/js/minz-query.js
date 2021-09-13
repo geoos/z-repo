@@ -9,12 +9,135 @@ const descAcums = {
     "n":"nº muestras", "sum":"acumulado", "avg":"promedio", "min":"mínimo", "max":"máximo"
 }
 const nivelesTemporalidad = ["5m", "15m", "30m", "1h", "6h", "12h", "1d", "1M", "3M", "4M", "6M", "1y"];
+const bloquesTemporalidad = ["Bloques de 5m", "Bloques de 15m", "Bloques de 30m", "Bloques de 1h", "Bloques de 6h", "Medios días", "Días", "Meses", "Trimestres", "Cuatrimestres", "Semestres", "Años"];
+const bloquesFavoritos = {
+    "5m":3, "15m":3, "30m":3,
+    "1h":6, "6h":6, "12h":6,
+    "1d":6, 
+    "1M":11, "3M":11, "4M":11, "6M":11,
+    "1y":11
+}
 const rangosTemporalidad = {
     "5m":1000 * 60 * 5, "15m":1000 * 60 * 5, "30m":1000 * 60 * 30,
     "1h":1000 * 60 * 60, "6h":1000 * 60 * 60 * 6, "12h":1000 * 60 * 60 * 12,
     "1d":1000 * 60 * 60 * 24,
     "1M":1000 * 60 * 60 * 24 * 30, "3M":1000 * 60 * 60 * 24 * 30 * 3, "4M":1000 * 60 * 60 * 24 * 30 * 4, "6M":1000 * 60 * 60 * 24 * 30 * 6,
     "1y":1000 * 60 * 60 * 24 * 365
+}
+const shortMeses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+
+function getLimitesDefaultBloquesTemporalidad(idxBloque) {
+    let ms = Date.now();
+    let start = moment.tz(ms, window.timeZone);
+    let end = start.clone();
+    switch(idxBloque) {
+        case 0: 
+        case 1:
+        case 2:         
+            start = start.startOf("hour");
+            end = start.clone().add(1, "hour");
+            break;
+        case 3:
+        case 4:
+        case 5:
+            start = start.startOf("day");
+            end = start.clone().add(1, "day");
+            break;
+        case 6:
+            start = start.startOf("month");
+            end = start.clone().add(1, "month");
+            break
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+            start = start.startOf("year");
+            end = start.clone().add(1, "year");
+            break;
+    }
+    return {start, end}
+}
+
+function mismoDia(start, end) {
+    return start.format("YYYY-MM-DD") == end.format("YYYY-MM-DD");
+}
+function mismoMes(start, end) {
+    return start.format("YYYY-MM") == end.format("YYYY-MM");
+}
+function mismoAno(start, end) {
+    return start.format("YYYY") == end.format("YYYY");
+}
+function describeTrimestre(d) {
+    if (d.month() == 0) return "1º trimestre";
+    if (d.month() == 3) return "2º trimestre";
+    if (d.month() == 6) return "3º trimestre";
+    if (d.month() == 9) return "4º trimestre";
+    return "Trimestre inválido";
+}
+function describeCuatrimestre(d) {
+    if (d.month() == 0) return "1º cuatrimestre";
+    if (d.month() == 4) return "2º cuatrimestre";
+    if (d.month() == 8) return "3º cuatrimestre";
+    return "Cuatrimestre inválido";
+}
+function describeSemestre(d) {
+    if (d.month() == 0) return "1º semestre";
+    if (d.month() == 6) return "2º semestre";
+    return "Semestre inválido";
+}
+function describePeriodoParaBloqueTemporalidad(idxBbloque, start, end) {
+    if (idxBbloque <= 5) {
+        // 5, 15, 30m, 1h, 6h, 12h
+        if (mismoDia(start, end)) {
+            return start.format("DD/MM/YYYY") + " [" + start.format("HH:mm") + " - " + end.format("HH:mm") + "[";
+        } else {
+            return "[" + start.format("DD/MM/YYYY HH:mm") + " - " + end.format("DD/MM/YYYY HH:mm") + "[";
+        }
+    } else if (idxBbloque == 6) {
+        // 1d
+        if (mismoDia(start, end.clone().subtract(1, "day"))) {
+            return "El día " + start.format("DD/MM/YYYY")
+        } else {
+            return "[" + start.format("DD/MM/YYYY") + " - " + end.clone().subtract(1, "day").format("DD/MM/YYYY") + "]";
+        }
+    } else if (idxBbloque == 7) {
+        // 1M
+        if (mismoMes(start, end.clone().subtract(1, "month"))) {
+            return "El mes de " + shortMeses[start.month()] + " del " + start.format("YYYY")
+        } else {
+            return "[" + shortMeses[start.month()] + "/" + start.format("YYYY") + " - " + shortMeses[end.clone().subtract(1, "month").month()] + "/" + end.clone().subtract(1, "month").format("YYYY") + "]";
+        }
+    } else if (idxBbloque == 8) {
+        // 3M
+        if (mismoMes(start, end.clone().subtract(3, "month"))) {
+            return "El " + describeTrimestre(start) + " del " + start.format("YYYY")
+        } else {
+            return "[" + describeTrimestre(start) + " del " + start.format("YYYY") + " - " + describeTrimestre(end.clone().subtract(3, "month")) + " del " + end.clone().subtract(3, "month").format("YYYY") + "]";
+        }
+    } else if (idxBbloque == 9) {
+        // 4M
+        if (mismoMes(start, end.clone().subtract(4, "month"))) {
+            return "El " + describeCuatrimestre(start) + " del " + start.format("YYYY")
+        } else {
+            return "[" + describeCuatrimestre(start) + " del " + start.format("YYYY") + " - " + describeCuatrimestre(end.clone().subtract(4, "month")) + " del " + end.clone().subtract(4, "month").format("YYYY") + "]";
+        }
+    } else if (idxBbloque == 10) {
+        // 6M
+        if (mismoMes(start, end.clone().subtract(6, "month"))) {
+            return "El " + describeSemestre(start) + " del " + start.format("YYYY")
+        } else {
+            return "[" + describeSemestre(start) + " del " + start.format("YYYY") + " - " + describeSemestre(end.clone().subtract(6, "month")) + " del " + end.clone().subtract(6, "month").format("YYYY") + "]";
+        }
+    } else if (idxBbloque == 11) {
+        // 1Y
+        if (mismoAno(start, end.clone().subtract(1, "year"))) {
+            return "El año " + start.format("YYYY")
+        } else {
+            return "[" + start.format("YYYY") + " - " + end.clone().subtract(1, "year") + "]";
+        }
+    }
+    return "??";
 }
 
 class GenericQuery {
@@ -42,7 +165,7 @@ class MinZQuery {
     static cloneQuery(q) {
         return new MinZQuery(q.zRepoClient, q.variable, q.groupingDimension, q.fixedFilter, q.filters, q.accum);
     }
-    constructor(zRepoClient, variable, groupingDimension, fixedFilter, filters, accum) {        
+    constructor(zRepoClient, variable, groupingDimension, fixedFilter, filters, accum) {  
         this.zRepoClient = zRepoClient;
         this.variable = variable;
         this.temporality = variable.temporality;
