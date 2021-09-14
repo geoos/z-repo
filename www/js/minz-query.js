@@ -134,7 +134,7 @@ function describePeriodoParaBloqueTemporalidad(idxBbloque, start, end) {
         if (mismoAno(start, end.clone().subtract(1, "year"))) {
             return "El año " + start.format("YYYY")
         } else {
-            return "[" + start.format("YYYY") + " - " + end.clone().subtract(1, "year") + "]";
+            return "[" + start.format("YYYY") + " - " + end.clone().subtract(1, "year").format("YYYY") + "]";
         }
     }
     return "??";

@@ -43,10 +43,10 @@ class Months extends ZCustomController {
             return;
         }
         this.start = moment.tz(window.timeZone);
-        this.start.year(this.startYYYY); this.start.month(this.getMesDePeriodo(this.edStartMonth.value));
+        this.start.year(startYYYY); this.start.month(this.getMesDePeriodo(this.edStartMonth.value));
         this.start.date(1); this.start.hour(0); this.start.minute(0); this.start.second(0); this.start.millisecond(0);
         this.end = moment.tz(window.timeZone);
-        this.end.year(this.endYYYY); this.end.month(this.getMesDePeriodo(this.edEndMonth.value));
+        this.end.year(endYYYY); this.end.month(this.getMesDePeriodo(this.edEndMonth.value));
         this.end.date(1); this.end.hour(0); this.end.minute(0); this.end.second(0); this.end.millisecond(0);
 
         this.end = this.end.clone().add(this.getNMeses(), "months");
