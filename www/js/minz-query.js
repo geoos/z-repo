@@ -163,7 +163,10 @@ class GenericQuery {
 
 class MinZQuery {
     static cloneQuery(q) {
-        return new MinZQuery(q.zRepoClient, q.variable, q.groupingDimension, q.fixedFilter, q.filters, q.accum);
+        // clonar filtros para asegurar inmutabilidad
+        let filters = q.filters;
+        if (filters) filters = JSON.parse(JSON.stringify(filters));
+        return new MinZQuery(q.zRepoClient, q.variable, q.groupingDimension, q.fixedFilter, filters, q.accum);
     }
     constructor(zRepoClient, variable, groupingDimension, fixedFilter, filters, accum) {  
         this.zRepoClient = zRepoClient;

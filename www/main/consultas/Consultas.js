@@ -9,7 +9,7 @@ class Consultas extends ZCustomController {
     }
     onThis_deactivated() {
         console.log("cons deactivated");
-        delete window.onresize;   
+        window.onresize = null;
     }
 }
 ZVC.export(Consultas);

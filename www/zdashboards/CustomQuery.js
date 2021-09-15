@@ -1,6 +1,7 @@
 const queryCharts = {
     "empty":"zdashboards/EmptyChart",
     "time-serie":"zdashboards/TimeSerie",
+    "pie":"zdashboards/Pie"
 }
 
 class CustomQuery extends ZCustomController {    
@@ -8,12 +9,13 @@ class CustomQuery extends ZCustomController {
     get variable() {return this.edVariable.selectedRow}
 
     async onThis_init() {
+        am4core.options.autoDispose = true;
         this.edVariable.setGroups(window.zrepo.variablesTree, "name", "variables");
         this.edQuery.setRows([{
             code:"time-serie", name:"Serie de Tiempo"
         }, {
             code:"pie", name:"Gráfico de Torta"
-        }])
+        }])        
         this.edAcumulador.setRows([{
             code:"value", name:"Suma en Período"
         }, {
@@ -25,13 +27,8 @@ class CustomQuery extends ZCustomController {
         }, {
             code:"max", name:"Máximo en el Período"
         }])
-        this.edTipoSerie.setRows([{
-            code:"line", name:"Gráfico de Líneas"
-        }, {
-            code:"columns", name:"Gráfico de Columnas"
-        }, {
-            code:"area", name:"Gráfico de Área"
-        }])
+        
+        this.inicializaOpcionesQuery();
         this.cambioVariable();
         this.cambioTemporalidad();
         this.rebuildQuery();
@@ -46,7 +43,6 @@ class CustomQuery extends ZCustomController {
     onEdTemporalidad_change() {this.cambioTemporalidad()}
     onEdQuery_change() {this.cambioQuery()}
     onEdAcumulador_change() {this.cambioAcumulador()}
-    onEdTipoSerie_change() {this.cambioTipoSerie()}
 
     async cambioVariable() {        
         if (!this.variable) {
@@ -95,6 +91,7 @@ class CustomQuery extends ZCustomController {
     onFiltro_click() {
         this.showDialog("common/WMinZFilters", {consulta:this.minzQuery}, q => {
             this.minzQuery = q;
+            this.minzQuery.temporality = nivelesTemporalidad[this.edTemporalidad.value];
             this.cambioFiltro();
         })
     }
@@ -111,10 +108,8 @@ class CustomQuery extends ZCustomController {
         this.callRefreshChart();
     }
     cambioQuery() {
+        this.inicializaOpcionesQuery();
         this.rebuildQuery();        
-    }
-    cambioTipoSerie() {
-        this.callRefreshChart();
     }
     cambioAcumulador() {
         if (this.minzQuery) this.minzQuery.accum = this.edAcumulador.value;
@@ -131,6 +126,19 @@ class CustomQuery extends ZCustomController {
         }
         this.cambioFiltro(); // Llama a callRefreshChart
     }
+
+    onCmdConfigurar_click() {
+        const w = {
+            "time-serie":"./chartProps/WTimeSerie",
+            "pie":"./chartProps/WPie"
+        }
+        this.showDialog(w[this.edQuery.value], this.opcionesQuery, opciones => {
+            opciones.variable = this.variable;
+            this.opcionesQuery = opciones;            
+            this.callRefreshChart();
+        })
+    }
+
     callRefreshChart() {
         if (this.chartRefreshTimer) {
             clearTimeout(this.chartRefreshTimer);
@@ -148,9 +156,27 @@ class CustomQuery extends ZCustomController {
         }
         // Configurar query y chart
         this.chart.setQuery(this.minzQuery);
-        this.chart.setOption("serieType", this.edTipoSerie.value);
+        this.chart.setOptions(this.opcionesQuery);
         // Refrescar
         await this.chart.refresh(this.start, this.end);
+    }
+
+    inicializaOpcionesQuery() {
+        switch(this.edQuery.value) {
+            case "time-serie":
+                this.cmdConfigurarRow.show();
+                this.opcionesQuery = {serieType:"line", zoomTiempo:true};
+                break;
+            case "pie":
+                this.cmdConfigurarRow.show();
+                this.opcionesQuery = {
+                    ruta:null, 
+                    variable:this.minzQuery.variable,
+                    leyendas:"inline",
+                    tipoTorta:"dona-gradiente"
+                };
+                break;
+        }
     }
 }
 ZVC.export(CustomQuery);
