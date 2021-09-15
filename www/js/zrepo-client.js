@@ -431,8 +431,6 @@ class ZRepoClient {
             url += "&filter=" + encodeURIComponent(JSON.stringify(filter));
             let controller = new AbortController();
             return {promise: this._getJSON(url, controller.signal), controller:controller}
-            //let summary = (await (await fetch(url)).json());
-            //return summary;
         } catch(error) {
             throw error;
         }
@@ -444,10 +442,7 @@ class ZRepoClient {
             url += "&filter=" + encodeURIComponent(JSON.stringify(filter));
             url += "&temporality=" + temporality;
             let controller = new AbortController();
-            console.log("filter", JSON.stringify(filter, null, 4), "temporality", temporality)
             return {promise: this._getJSON(url, controller.signal), controller:controller}
-            //let summary = (await (await fetch(url)).json());
-            //return summary;
         } catch(error) {
             throw error;
         }
@@ -463,10 +458,7 @@ class ZRepoClient {
                 url += "&minimize=true";
             }
             let controller = new AbortController();
-            console.log("filter", JSON.stringify(filter, null, 4), "temporality", temporality)
             return {promise: this._getJSON(url, controller.signal), controller:controller}
-            //let summary = (await (await fetch(url)).json());
-            //return summary;
         } catch(error) {
             throw error;
         }
@@ -480,8 +472,6 @@ class ZRepoClient {
             let controller = new AbortController();
             console.log("zrepo query url", url)
             return {promise: this._getJSON(url, controller.signal), controller:controller}
-            //let ret = (await (await fetch(url)).json());
-            //return ret;
         } catch(error) {
             throw error;
         }

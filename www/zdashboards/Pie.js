@@ -27,7 +27,6 @@ class Pie extends ZCustomController {
             this.start = start;
             this.end = end;
             if (this.chart) {
-                console.log("eliminando pie");
                 this.chart.dispose();
                 this.chart = null;
             }            
@@ -86,7 +85,6 @@ class Pie extends ZCustomController {
             if (canDrillDown) {
                 pieSeries.slices.template.cursorOverStyle = am4core.MouseCursorStyle.pointer;
                 pieSeries.slices.template.events.on("hit", e => {
-                    console.log("hit", e);
                     setTimeout(_ => this.drilldown(e.target.dataItem.dataContext.codigo), 50);
                 })
             }

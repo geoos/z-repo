@@ -1,7 +1,8 @@
 const queryCharts = {
     "empty":"zdashboards/EmptyChart",
     "time-serie":"zdashboards/TimeSerie",
-    "pie":"zdashboards/Pie"
+    "pie":"zdashboards/Pie",
+    "dim-serie":"zdashboards/DimSerie"
 }
 
 class CustomQuery extends ZCustomController {    
@@ -15,6 +16,8 @@ class CustomQuery extends ZCustomController {
             code:"time-serie", name:"Serie de Tiempo"
         }, {
             code:"pie", name:"Gráfico de Torta"
+        }, {
+            code:"dim-serie", name:"Barras por Dimensiones"
         }])        
         this.edAcumulador.setRows([{
             code:"value", name:"Suma en Período"
@@ -130,7 +133,8 @@ class CustomQuery extends ZCustomController {
     onCmdConfigurar_click() {
         const w = {
             "time-serie":"./chartProps/WTimeSerie",
-            "pie":"./chartProps/WPie"
+            "pie":"./chartProps/WPie",
+            "dim-serie":"./chartProps/WDimSerie"
         }
         this.showDialog(w[this.edQuery.value], this.opcionesQuery, opciones => {
             opciones.variable = this.variable;
@@ -174,6 +178,14 @@ class CustomQuery extends ZCustomController {
                     variable:this.minzQuery.variable,
                     leyendas:"inline",
                     tipoTorta:"dona-gradiente"
+                };
+                break;
+            case "dim-serie":
+                this.cmdConfigurarRow.show();
+                this.opcionesQuery = {
+                    ruta:null,
+                    serieType:"bars",
+                    variable:this.minzQuery.variable
                 };
                 break;
         }
