@@ -123,8 +123,6 @@ class Pie extends ZCustomController {
     }
 
     drilldown(dimValue) {
-        console.log("drillDown", dimValue);
-        console.log("query", this.q);
         this.drillStack.push(this.q);
         let q2 = MinZQuery.cloneQuery(this.q);
         let p = q2.groupingDimension.lastIndexOf(".");

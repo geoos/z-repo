@@ -166,13 +166,15 @@ class MinZQuery {
         // clonar filtros para asegurar inmutabilidad
         let filters = q.filters;
         if (filters) filters = JSON.parse(JSON.stringify(filters));
-        return new MinZQuery(q.zRepoClient, q.variable, q.groupingDimension, q.fixedFilter, filters, q.accum);
+        return new MinZQuery(q.zRepoClient, q.variable, q.groupingDimension, q.fixedFilter, filters, q.accum, q.hGroupingDimension, q.vGroupingDimension);
     }
-    constructor(zRepoClient, variable, groupingDimension, fixedFilter, filters, accum) {  
+    constructor(zRepoClient, variable, groupingDimension, fixedFilter, filters, accum, hGroupingDimension, vGroupingDimension) {  
         this.zRepoClient = zRepoClient;
         this.variable = variable;
         this.temporality = variable.temporality;
         this.groupingDimension = groupingDimension;
+        this.hGroupingDimension = hGroupingDimension;
+        this.vGroupingDimension = vGroupingDimension;
         this.fixedFilter = fixedFilter;
         this.filters = filters || [];
         this.accum = accum || "sum";
@@ -353,6 +355,16 @@ class MinZQuery {
                 filtros:this.filters, 
                 variable:this.variable, 
                 dimensionAgrupado:this.groupingDimension,
+                acumulador:this.accum,
+                temporality:this.temporality
+            }
+        } else if (args.format == "dim-dim") {
+            q = {
+                tipoQuery:"dim-dim", 
+                filtros:this.filters, 
+                variable:this.variable, 
+                dimensionAgrupadoH:this.hGroupingDimension,
+                dimensionAgrupadoV:this.vGroupingDimension,
                 acumulador:this.accum,
                 temporality:this.temporality
             }

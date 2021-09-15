@@ -397,6 +397,19 @@ class ZRepoClient {
                         resultado = {promise:buildPromise, controller}
                     }
                     break;                
+                case "dim-dim": {
+                        filtro = {};
+                        if (query.filtros) query.filtros.forEach(f => this.construyeFiltro(filtro, f.ruta, f.valor));
+                        let {promise, controller} = this.queryDimDim(query.variable.code, startTime, endTime, filtro, query.dimensionAgrupadoH, query.dimensionAgrupadoV);
+                        let buildPromise = new Promise((resolve, reject) => {
+                            promise.then(res => {
+                                res.forEach(r => r.resultado = this.extraeAcumulador(r, query.acumulador));
+                                resolve(res);
+                            }).catch(err => reject(err))
+                        })
+                        resultado = {promise:buildPromise, controller}
+                    }
+                    break;                
                 default:
                     throw "Tipo de query '" + query.tipoQuery + "' no implementado";
             }
@@ -469,6 +482,20 @@ class ZRepoClient {
             url += "&startTime=" + startTime + "&endTime=" + endTime;
             url += "&filter=" + encodeURIComponent(JSON.stringify(filter));
             url += "&groupDimension=" + dimensionAgrupado
+            let controller = new AbortController();
+            console.log("zrepo query url", url)
+            return {promise: this._getJSON(url, controller.signal), controller:controller}
+        } catch(error) {
+            throw error;
+        }
+    }
+    queryDimDim(codigoVariable, startTime, endTime, filter, dimensionAgrupadoH, dimensionAgrupadoV) {
+        try {
+            let url = this.url + "/data/" + codigoVariable + "/dim-dim?token=" + this.token;
+            url += "&startTime=" + startTime + "&endTime=" + endTime;
+            url += "&filter=" + encodeURIComponent(JSON.stringify(filter));
+            url += "&hGroupDimension=" + dimensionAgrupadoH;
+            url += "&vGroupDimension=" + dimensionAgrupadoV;
             let controller = new AbortController();
             console.log("zrepo query url", url)
             return {promise: this._getJSON(url, controller.signal), controller:controller}
