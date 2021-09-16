@@ -1,23 +1,6 @@
-class DimSerie extends ZCustomController {
+class DimSerie extends ZDashboardElement {
     get code() {return "dim-serie"}
     onThis_init() {
-    }
-    onThis_deactivated() {
-        if (this.chart) {
-            this.chart.dispose();
-            this.chart = null;
-        }
-    }
-    doResize(w, h) {
-        if (this.chart) {
-            this.chart.invalidate();
-        }
-    }
-    setQuery(q) {
-        this.q = q;
-    }
-    setOptions(opts) {
-        this.options = opts;
     }
     async refresh(start, end, operation = "refresh") {
         if (operation == "refresh") this.drillStack = [];
@@ -53,9 +36,9 @@ class DimSerie extends ZCustomController {
         let invertedAxes = this.options.serieType == "bars" || this.options.serieType == "3d-bars";
         let chart;
         if (is3d) {
-            chart = am4core.create("dimSerieContainer", am4charts.XYChart3D);
+            chart = am4core.create(this.chartContainerId, am4charts.XYChart3D);
         } else {
-            chart = am4core.create("dimSerieContainer", am4charts.XYChart);
+            chart = am4core.create(this.chartContainerId, am4charts.XYChart);
         }
         chart.data = data;
 

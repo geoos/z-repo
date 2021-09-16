@@ -1,25 +1,6 @@
-class Pie extends ZCustomController {
+class Pie extends ZDashboardElement {
     get code() {return "pie"}
     onThis_init() {
-    }
-    onThis_deactivated() {
-        if (this.chart) {
-            this.chart.dispose();
-            this.chart = null;
-            console.log("destruccion pie");
-        }
-    }
-    doResize(w, h) {
-        if (this.chart) {
-            console.log("invalidadndo pie");
-            this.chart.invalidate();
-        }
-    }
-    setQuery(q) {
-        this.q = MinZQuery.cloneQuery(q);
-    }
-    setOptions(opts) {
-        this.options = opts;
     }
     async refresh(start, end, operation = "refresh") {
         try {
@@ -53,9 +34,9 @@ class Pie extends ZCustomController {
             let chart, pieSeries;
             let es3d = this.options.tipoTorta == "3d" || this.options.tipoTorta == "dona-3d";
             if (es3d) {       
-                chart = am4core.create("pieContainer", am4charts.PieChart3D);
+                chart = am4core.create(this.chartContainerId, am4charts.PieChart3D);
             } else {
-                chart = am4core.create("pieContainer", am4charts.PieChart);
+                chart = am4core.create(this.chartContainerId, am4charts.PieChart);
             }
             chart.data = data;
             if (es3d) {

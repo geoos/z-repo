@@ -14,6 +14,7 @@ class WHeatMap extends ZDialog {
         } else {
             this.edRutaV.value = this.rutaV;
         }
+        this.edIndiceColor.value = options.indiceColor;
     }    
 
     onCmdSeleccionaRutaH_click() {
@@ -36,7 +37,9 @@ class WHeatMap extends ZDialog {
     }
 
     async onCmdOk_click() {
-        this.close({rutaH: this.rutaH, rutaV: this.rutaV});
+        let indiceColor = parseInt(this.edIndiceColor.value);
+        if (indiceColor < 0 || indiceColor > 512) return;
+        this.close({rutaH: this.rutaH, rutaV: this.rutaV, indiceColor});
     }
 }
 ZVC.export(WHeatMap);

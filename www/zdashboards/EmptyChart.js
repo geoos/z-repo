@@ -1,8 +1,5 @@
-class EmptyChart extends ZCompoundController {
+class EmptyChart extends ZDashboardElement {
     get code() {return "empty"}
-    doResize(w, h) {}
-    setQuery(q) {this.q = q}
-    setOptions(opts) {this.options = opts;}
     async refresh(start, end) {}
 }
 ZVC.export(EmptyChart);

@@ -161,6 +161,7 @@ class CustomQuery extends ZCustomController {
         if (this.chart.code != this.edQuery.value) {
             let panel = queryCharts[this.edQuery.value];
             await this.chartLoader.load(panel);
+            this.chartLoader.content.doResize();
         }
         // Configurar query y chart
         this.chart.setQuery(this.minzQuery);
@@ -196,7 +197,8 @@ class CustomQuery extends ZCustomController {
                 this.cmdConfigurarRow.show();
                 this.opcionesQuery = {
                     rutaH:null, rutaV:null,
-                    variable:this.minzQuery.variable
+                    variable:this.minzQuery.variable,
+                    indiceColor:0
                 };
                 break;
         }

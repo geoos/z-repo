@@ -1,23 +1,8 @@
-class HeatMap extends ZCustomController {
+class HeatMap extends ZDashboardElement {
     get code() {return "dim-serie"}
-    onThis_init() {
-    }
-    onThis_deactivated() {
-        if (this.chart) {
-            this.chart.dispose();
-            this.chart = null;
-        }
-    }
-    doResize(w, h) {
-        if (this.chart) {
-            this.chart.invalidate();
-        }
-    }
-    setQuery(q) {
-        this.q = q;
-    }
-    setOptions(opts) {
-        this.options = opts;
+    get baseContainer() {return this["baseContainer-" + this.zId];}
+    get chartContainer() {return this["heatMapContainer-" + this.zId];}
+    onThis_init() {        
     }
     async refresh(start, end, operation = "refresh") {
         if (operation == "refresh") {
@@ -31,6 +16,7 @@ class HeatMap extends ZCustomController {
         if (this.chart) {
             await this.chart.dispose();
             this.chart = null;
+            this.chartContainer.html = "";
         }
 
         if (!this.q || !this.options.rutaH || !this.options.rutaV) return;            
@@ -53,9 +39,22 @@ class HeatMap extends ZCustomController {
         }))
         //console.log("data2", data);
 
+        // Contar filas y columnas para calcular tamaño mínimo
+        let filas = {}, columnas = {};
+        data.forEach(row => {
+            filas[row.vCode] = true;
+            columnas[row.hCode] = true;
+        })
+        let nFilas = Object.keys(filas).length;
+        let nColumnas = Object.keys(columnas).length;
+        let minHeight = 100 + 30 * nFilas;    // Leyenda de colores + 30px por fila
+        let minWidth = 300 + 160 * nColumnas; // Labels + 160px por columna
+        this.chartContainer.view.style.setProperty("min-width", minWidth + "px");
+        this.chartContainer.view.style.setProperty("min-height", minHeight + "px");
+
         am4core.useTheme(am4themes_dark);
         am4core.useTheme(am4themes_animated);
-        let chart = am4core.create("heatMapContainer", am4charts.XYChart);
+        let chart = am4core.create("heatMapContainer-" + this.zId, am4charts.XYChart);
         chart.data = data;
         let xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
         xAxis.dataFields.category = "hName";
@@ -110,7 +109,7 @@ class HeatMap extends ZCustomController {
             target: columnTemplate,
             property: "fill",
             min: am4core.color(bgColor),
-            max: chart.colors.getIndex(0)
+            max: chart.colors.getIndex(this.options.indiceColor)
         });
 
         let heatLegend = chart.bottomAxesContainer.createChild(am4charts.HeatLegend);

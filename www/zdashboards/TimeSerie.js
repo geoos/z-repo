@@ -1,24 +1,8 @@
-class TimeSerie extends ZCustomController {
+class TimeSerie extends ZDashboardElement {
     get code() {return "time-serie"}
     onThis_init() {
     }
-    onThis_deactivated() {
-        if (this.chart) {
-            this.chart.dispose();
-            this.chart = null;
-        }
-    }
-    doResize(w, h) {
-        if (this.chart) {
-            this.chart.invalidate();
-        }
-    }
-    setQuery(q) {
-        this.q = q;
-    }
-    setOptions(opts) {
-        this.options = opts;
-    }
+    
     asDate(row) {
         let l = row.localTime;
         return new Date(l.year, l.month-1, l.day, l.hour, l.minute);
@@ -118,9 +102,9 @@ class TimeSerie extends ZCustomController {
         let is3d = this.options.serieType == "3d-columns" || this.options.serieType == "3d-cylinders";
         let chart;
         if (is3d) {
-            chart = am4core.create("chartContainer", am4charts.XYChart3D);
+            chart = am4core.create(this.chartContainerId, am4charts.XYChart3D);
         } else {
-            chart = am4core.create("chartContainer", am4charts.XYChart);
+            chart = am4core.create(this.chartContainerId, am4charts.XYChart);
         }
         chart.data = data;
         
