@@ -219,7 +219,7 @@ class RestAPI {
 
 
         // Dimension Rows
-        app.post("/dim/:code/rows", async (req, res) => {
+        app.post("/dim/:code", async (req, res) => {
             try {
                 await security.checkPrivilege(this.getAuth(req), "minz-write-dim");
                 res.setHeader('Content-Type', 'application/json');
