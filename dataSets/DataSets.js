@@ -69,11 +69,13 @@ class DataSets {
                                 await consumer.connect();
                                 await consumer.run({
                                     eachMessage: async ({ topic, partition, message }) => {
+                                        /*
                                         console.log({
                                             key: message.key.toString(),
                                             value: message.value.toString(),
                                             headers: message.headers,
                                         })
+                                        */
                                         try {
                                             let row = JSON.parse(message.value.toString());
                                             await this.importRow(ds.code, row);
@@ -254,10 +256,18 @@ class DataSets {
                 if (timeCol) {
                     let timeZone = require("../lib/Config").config.timeZone;
                     rows.forEach(r => {
-                        let rowTime = r[timeCol.code];
+                        let rowTime = r[timeCol.code];                        
                         if (!isNaN(parseInt(rowTime))) rowTime = parseInt(rowTime);
                         if (typeof rowTime == "string") rowTime = moment.tz(rowTime, timeZone).valueOf();
-                        r.time = rowTime
+                        if (!rowTime || isNaN(rowTime)) {
+                            rowTime = Date.now();
+                            r[timeCol.code] = rowTime;
+                        }
+                        r.time = rowTime;
+                    });
+                } else {
+                    rows.forEach(r => {
+                        r.time = Date.now();
                     });
                 }
             }

@@ -1,0 +1,53 @@
+<div class="container border bg-light">
+    <div class="row">
+        <div class="col-8 zrepo-panel">
+            <div id="errorMsg" class="alert alert-danger my-2 ml-2"></div>
+            <div class="container">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edFromValue">Valor Mínimo</label>
+                            <input id="edFromValue" type="number" class="form-control form-control-sm">
+                        </div>        
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edToValue">Valor Máximo</label>
+                            <input id="edToValue" type="number" class="form-control form-control-sm">
+                        </div>        
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edLabel">Etiqueta (opcional)</label>
+                            <input id="edLabel" type="text" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edColor">Color</label>
+                            <input id="edColor" type="color" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="h-100 mt-2">
+                <button id="cmdSave" type="button" class="btn btn-sm w-100 btn-outline-success">
+                    <i class="far fa-check-circle float-left mt-1 mr-2"></i>
+                    Guardar
+                </button>
+                <button id="cmdCancel" type="button" class="btn btn-sm w-100 btn-outline-warning mt-2">
+                    <i class="fas fa-ban float-left mt-1 mr-2"></i>
+                    Cancelar
+                </button>
+                <button id="cmdDelete" type="button" class="btn btn-sm w-100 btn-outline-danger mt-4">
+                    <i class="fas fa-trash-alt float-left mt-1 mr-2"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

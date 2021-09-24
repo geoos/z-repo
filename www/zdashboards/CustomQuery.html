@@ -1,5 +1,5 @@
 <div class="container-fuild h-100">
-    <div class="row h-100">
+    <div id="mainRow" class="row h-100">
         <div class="col-sm-2">
             <div class="">
                 <select id="edVariable" class="selectpicker show-tick w-100" data-live-search="true" data-style="btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="col-sm-10">
-            <div class="w-100 h-100 border rounded">
+            <div id="loaderContainer" class="w-100 h-100 border rounded">
                 <div id="chartLoader" class="h-100" data-z-load="zdashboards/EmptyChart"></div>
             </div>
         </div>

@@ -377,6 +377,13 @@ class MinZQuery {
                 acumulador:this.accum,
                 temporalidad:this.temporality
             }
+        } else if (args.format == "period-summary") {
+            q = {
+                tipoQuery:"period-summary", 
+                filtros:this.filters, 
+                variable:this.variable, 
+                acumulador:this.accum
+            }
         } else throw "Format '" + args.format + "' not handled";
         return this.zRepoClient.query(q, this.startTime, this.endTime);
     }

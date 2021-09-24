@@ -3,7 +3,8 @@ const queryCharts = {
     "time-serie":"zdashboards/TimeSerie",
     "pie":"zdashboards/Pie",
     "dim-serie":"zdashboards/DimSerie",
-    "heatmap":"zdashboards/HeatMap"
+    "heatmap":"zdashboards/HeatMap",
+    "gauge":"zdashboards/Gauge"
 }
 
 class CustomQuery extends ZCustomController {    
@@ -21,6 +22,8 @@ class CustomQuery extends ZCustomController {
             code:"dim-serie", name:"Barras por Dimensiones"
         }, {
             code:"heatmap", name:"Heat Map"
+        }, {
+            code:"gauge", name:"Gauge"
         }])        
         this.edAcumulador.setRows([{
             code:"value", name:"Suma en Período"
@@ -42,6 +45,9 @@ class CustomQuery extends ZCustomController {
 
     doResize(w, h) {        
         this.size = {width:w, height:h};
+        this.mainRow.view.style.setProperty("max-height", h + "px");
+        this.loaderContainer.view.style.setProperty("max-height", h + "px");
+        this.chartLoader.view.style.setProperty("max-height", h + "px");
         this.chart.doResize(w, h);
     }
 
@@ -55,6 +61,7 @@ class CustomQuery extends ZCustomController {
             // Esconder
             console.log("No hay variable .. esconder");
             this.minzQuery = null;
+            this.inicializaOpcionesQuery();
             this.rebuildQuery();
             return;
         }
@@ -71,6 +78,7 @@ class CustomQuery extends ZCustomController {
             this.edTemporalidad.setRows(bloques, bloquesTemporalidad[idxFavorito]); 
             this.cambioTemporalidad();
         }
+        this.inicializaOpcionesQuery();
         this.rebuildQuery();        
     }
 
@@ -138,7 +146,8 @@ class CustomQuery extends ZCustomController {
             "time-serie":"./chartProps/WTimeSerie",
             "pie":"./chartProps/WPie",
             "dim-serie":"./chartProps/WDimSerie",
-            "heatmap":"./chartProps/WHeatMap"
+            "heatmap":"./chartProps/WHeatMap",
+            "gauge":"./chartProps/WGauge"
         }
         this.showDialog(w[this.edQuery.value], this.opcionesQuery, opciones => {
             opciones.variable = this.variable;
@@ -199,6 +208,20 @@ class CustomQuery extends ZCustomController {
                     rutaH:null, rutaV:null,
                     variable:this.minzQuery.variable,
                     indiceColor:0
+                };
+                break;
+            case "gauge":
+                this.cmdConfigurarRow.show();
+                this.opcionesQuery = {
+                    //min:0, max:100,
+                    scale:0.7,
+                    min:0, max:100000,
+                    firstColor:"#0f9747",
+                    firstLabel:"Bajo",
+                    ranges:[{
+                        value:50000, color:"#ee1f25",
+                        label:"Alto"
+                    }]
                 };
                 break;
         }

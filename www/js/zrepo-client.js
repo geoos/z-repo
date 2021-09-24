@@ -358,13 +358,14 @@ class ZRepoClient {
             let filtro, resultado;
             switch (query.tipoQuery) {
                 case "period-summary": {
+                        console.log("period-summary con", query);
                         filtro = {};
                         if (query.filtros) query.filtros.forEach(f => this.construyeFiltro(filtro, f.ruta, f.valor));
                         if (query.filtroFijo) this.construyeFiltro(filtro, query.filtroFijo.ruta, query.filtroFijo.valor);
                         let {promise, controller} = this.queryPeriodSummary(query.variable.code, startTime, endTime, filtro);
                         let buildPromise = new Promise((resolve, reject) => {
                             promise.then(res => {
-                                resolve(this.extraeAcumulador(res.query.acumulador));
+                                resolve(this.extraeAcumulador(res, query.acumulador));
                             }).catch(err => reject(err))
                         })
                         resultado = {promise:buildPromise, controller}
