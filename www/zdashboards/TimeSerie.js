@@ -115,7 +115,7 @@ class TimeSerie extends ZDashboardElement {
         if (this.q.accum == "n") {
             valueAxis.title.text = "N°";
         } else {
-            valueAxis.title.text = this.q.variable.options.unit;
+            valueAxis.title.text = this.q.variable.options?this.q.variable.options.unit:"S/U";
         }        
 
         let series, bullet, square;

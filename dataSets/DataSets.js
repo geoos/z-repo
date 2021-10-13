@@ -216,9 +216,9 @@ class DataSets {
             varRow.value = difValue;
             //console.log("DiferenciaL: ", varRow.value);
         } else {
-            if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
+            if (typeof trigger.value == "number") varRow.value = trigger.value;
+            else if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
             if (isNaN(varRow.value)) return null;
-            else varRow.value = dsRow[trigger.value];
         }
         if (trigger.data) {
             trigger.data.forEach(field => {

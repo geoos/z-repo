@@ -91,7 +91,7 @@ class DataSets extends ZCustomController {
 
     getTimeFilters() {
         let d0 = this.edDesde.value.startOf("day");
-        let d1 = this.edDesde.value.endOf("day");
+        let d1 = this.edHasta.value.endOf("day");
         return {fromTime:d0.valueOf(), toTime:d1.valueOf()};
     }
     async onRowsList_getRowsCount() {
