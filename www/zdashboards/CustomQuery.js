@@ -4,7 +4,8 @@ const queryCharts = {
     "pie":"zdashboards/Pie",
     "dim-serie":"zdashboards/DimSerie",
     "heatmap":"zdashboards/HeatMap",
-    "gauge":"zdashboards/Gauge"
+    "gauge":"zdashboards/Gauge",
+    "time-dim":"zdashboards/TimeDim"
 }
 
 class CustomQuery extends ZCustomController {    
@@ -24,6 +25,8 @@ class CustomQuery extends ZCustomController {
             code:"heatmap", name:"Heat Map"
         }, {
             code:"gauge", name:"Gauge"
+        }, {
+            code:"time-dim", name:"Serie Temporal Dimensiones"
         }])        
         this.edAcumulador.setRows([{
             code:"value", name:"Suma en Período"
@@ -147,7 +150,9 @@ class CustomQuery extends ZCustomController {
             "pie":"./chartProps/WPie",
             "dim-serie":"./chartProps/WDimSerie",
             "heatmap":"./chartProps/WHeatMap",
-            "gauge":"./chartProps/WGauge"
+            "gauge":"./chartProps/WGauge",
+            "time-serie":"./chartProps/WTimeSerie",
+            "time-dim":"./chartProps/WTimeDim"
         }
         this.showDialog(w[this.edQuery.value], this.opcionesQuery, opciones => {
             opciones.variable = this.variable;
@@ -222,6 +227,16 @@ class CustomQuery extends ZCustomController {
                         value:50000, color:"#ee1f25",
                         label:"Alto"
                     }]
+                };
+                break;
+            case "time-dim":
+                this.cmdConfigurarRow.show();
+                this.opcionesQuery = {
+                    zoomTiempo:true, 
+                    ruta:null,
+                    serieType:"bars",
+                    leyendas:"left",
+                    variable:this.minzQuery.variable
                 };
                 break;
         }

@@ -377,6 +377,15 @@ class MinZQuery {
                 acumulador:this.accum,
                 temporalidad:this.temporality
             }
+        } else if (args.format == "time-dim") {
+            q = {
+                tipoQuery:"time-dim", 
+                filtros:this.filters, 
+                dimensionAgrupado:this.groupingDimension,
+                variable:this.variable, 
+                acumulador:this.accum,
+                temporalidad:this.temporality
+            }
         } else if (args.format == "period-summary") {
             q = {
                 tipoQuery:"period-summary", 

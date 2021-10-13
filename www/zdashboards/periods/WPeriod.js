@@ -6,6 +6,7 @@ class WPeriod extends ZDialog {
             case "5m":
             case "15m":
             case "30m":
+            case "1h":
                 await this.periodLoader.load("./Hours", options);
                 break;
             case "1d":

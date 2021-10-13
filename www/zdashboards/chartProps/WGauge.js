@@ -4,17 +4,16 @@ class WGauge extends ZDialog {
         this.edEscala.value = options.scale;
         this.min = options.min;
         this.max = options.max;
-        this.ranges = options.ranges;
+        this.ranges = JSON.parse(JSON.stringify(options.ranges));
         this.firstColor = options.firstColor;
-        this.firstLabel = options.label;
+        this.firstLabel = options.firstLabel;
         this.refreshRanges();
     } 
 
     refreshRanges() {
         this.rows = [];
         setTimeout(_ => this.list.refresh(), 10);
-        this.cmdOk.disable();
-        let r0 = {min:this.min, color:this.options.firstColor, label:this.options.firstLabel, isFirst:true};
+        let r0 = {min:this.min, color:this.firstColor, label:this.firstLabel, isFirst:true};
         this.rows.push(r0);
         if (!this.ranges.length) {
             r0.max = this.max; r0.isLast = true;            
@@ -51,10 +50,27 @@ class WGauge extends ZDialog {
     }
     async onList_saved(row, rowIndex, record) {
         await this.list.closeDetails(rowIndex);
+        if (record.isFirst) {
+            this.min = record.min;
+            this.firstColor = record.color;
+            this.firstLabel = record.label;
+            if (!record.isLast) this.ranges[0].value = record.max;
+        }
+        if (record.isLast) {
+            this.max = record.max;
+        } else {
+            this.ranges[rowIndex].value = record.max;
+        }
+        if (!record.isFirst) {
+            let i = rowIndex - 1;            
+            this.ranges[i].label = record.label;
+            this.ranges[i].color = record.color;
+        }            
         this.refreshRanges();
     }
     async onList_deleted(row, rowIndex) {
         await this.list.closeDetails(rowIndex);
+        this.ranges.splice(rowIndex - 1, 1);
         this.refreshRanges();
     }
     
@@ -66,10 +82,12 @@ class WGauge extends ZDialog {
     }
 
     async onCmdOk_click() {
-        let scale = parseFloat(this.edIndiceColor.value);
+        let scale = parseFloat(this.edEscala.value);
         if (scale < 0 || scale > 10) return;
         this.close({
-            scale
+            scale, min:this.min, max:this.max,
+            firstLabel: this.firstLabel, firstColor:this.firstColor,
+            ranges: this.ranges
         });
     }
 }

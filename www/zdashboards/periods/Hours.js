@@ -4,12 +4,14 @@ class Hours extends ZCustomController {
         const rowsInicio = {
              "5m":["00:00", "05:00", "10:00", "15:00", "20:00", "25:00", "30:00", "35:00", "40:00", "45:00", "50:00", "55:00"],
             "15m":["00:00", "15:00", "30:00", "45:00"],
-            "30m":["00:00", "30:00"]
+            "30m":["00:00", "30:00"],
+            "1h":["00:00"]
         };
         const rowsFin = {
             "5m":["04:59", "09:59", "14:59", "19:59", "24:59", "29:59", "34:59", "39:59", "44:59", "49:59", "54:59", "59:59"],
            "15m":["14:59", "29:59", "44:59", "59:59"],
-           "30m":["29:59", "59:59"]
+           "30m":["29:59", "59:59"],
+           "1h":["59:59"]
         };
         this.edStartDate.value = this.onlyDate(options.start);
         let bloquesStart = rowsInicio[options.temporality].map((r, idx) => ({code:idx, name:r}));
@@ -30,10 +32,11 @@ class Hours extends ZCustomController {
         return d;
     }
     getNMinutos() {
-        switch(this.options.temporality) {
+        switch(this.options.temporality) {            
             case "5m":  return 5;
             case "15m": return 15;
             case "30m": return 30;
+            case "1h":  return 60;
         }
     }
     getFilaMinutos(d) {

@@ -90,7 +90,7 @@ class Gauge extends ZDashboardElement {
             label2.paddingBottom = 55 * scale;
             label2.horizontalCenter = "middle";
             label2.verticalCenter = "bottom";
-            label2.text = this.q.variable.options.unit;
+            label2.text = this.q.variable.options?this.q.variable.options.unit:"S/U";
 
             let label = chart.radarContainer.createChild(am4core.Label);
             label.isMeasured = false;

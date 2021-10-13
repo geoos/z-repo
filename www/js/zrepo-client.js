@@ -385,6 +385,20 @@ class ZRepoClient {
                         resultado = {promise:buildPromise, controller}
                     }
                     break;
+                case "time-dim": {
+                        filtro = {};
+                        if (query.filtros) query.filtros.forEach(f => this.construyeFiltro(filtro, f.ruta, f.valor));
+                        let {promise, controller} = this.queryTimeDim(query.variable.code, startTime, endTime, filtro, query.dimensionAgrupado, query.temporalidad);
+                        let buildPromise = new Promise((resolve, reject) => {
+                            promise.then(res => {
+                                //console.log("res", res);
+                                res.forEach(r => r.resultado = this.extraeAcumulador(r, query.acumulador));
+                                resolve(res);
+                            }).catch(err => reject(err))
+                        })
+                        resultado = {promise:buildPromise, controller}
+                    }
+                    break;
                 case "dim-serie": {
                         filtro = {};
                         if (query.filtros) query.filtros.forEach(f => this.construyeFiltro(filtro, f.ruta, f.valor));
@@ -485,6 +499,19 @@ class ZRepoClient {
             url += "&groupDimension=" + dimensionAgrupado
             let controller = new AbortController();
             console.log("zrepo query url", url)
+            return {promise: this._getJSON(url, controller.signal), controller:controller}
+        } catch(error) {
+            throw error;
+        }
+    }
+    queryTimeDim(codigoVariable, startTime, endTime, filter, dimensionAgrupado, temporality) {
+        try {
+            let url = this.url + "/data/" + codigoVariable + "/time-dim?token=" + this.token;
+            url += "&startTime=" + startTime + "&endTime=" + endTime;
+            url += "&filter=" + encodeURIComponent(JSON.stringify(filter));
+            url += "&temporality=" + temporality;
+            url += "&groupDimension=" + dimensionAgrupado;
+            let controller = new AbortController();
             return {promise: this._getJSON(url, controller.signal), controller:controller}
         } catch(error) {
             throw error;
