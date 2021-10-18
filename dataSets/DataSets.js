@@ -6,6 +6,7 @@ const http = require("http");
 const https = require("https");
 const moment = require("moment-timezone");
 const CronJob = require('cron').CronJob;
+const {Kafka} = require("kafkajs");
 
 class DataSets {
     static get instance() {
@@ -39,7 +40,14 @@ class DataSets {
             if (this.cronJobs) {
                 for (let job of this.cronJobs) job.stop();            
             }
+            if (this.kafkaClientsConsumers) {
+                for (let k of this.kafkaClientsConsumers) {
+                    await k.consumer.stop();
+                    await k.consumer.disconnect();
+                }
+            }
             this.cronJobs = [];
+            this.kafkaClientsConsumers = [];
             let dss = this.getDataSets();
             for (let ds of dss) {
                 let col = await mongo.collection(ds.code);
@@ -53,6 +61,36 @@ class DataSets {
                             }, null, true, this.timeZone);
                             this.cronJobs.push(job);
                             job.start();
+                        } else if (imp.type == "kafka-topic") {
+                            let kafka = new Kafka(imp.clientConfig);
+                            let consumer = kafka.consumer(imp.consumerConfig);
+                            await consumer.subscribe({topic:imp.topic});
+                            try {
+                                await consumer.connect();
+                                await consumer.run({
+                                    eachMessage: async ({ topic, partition, message }) => {
+                                        /*
+                                        console.log({
+                                            key: message.key.toString(),
+                                            value: message.value.toString(),
+                                            headers: message.headers,
+                                        })
+                                        */
+                                        try {
+                                            let row = JSON.parse(message.value.toString());
+                                            await this.importRow(ds.code, row);
+                                        } catch(error) {
+                                            console.error(error);
+                                            await logs.error("Error importing dataSet row from Kafka topic: " + error.toString())
+                                        }                                        
+                                    }
+                                })
+                                await logs.info("Listening on kafka topic " + imp.topic);
+                            } catch(error) {
+                                console.error(error);
+                                await logs.error("Cannot connect to kafka topic " + imp.topic + ". " + error.toString());
+                            }
+
                         }
                     }
                 }
@@ -65,16 +103,40 @@ class DataSets {
 
     async getRowsCount(dsCode, fromTime, toTime, filter) {
         try {
+            let f = {time:{"$gte":fromTime, "$lte":toTime}}
+            if (filter) {
+                let ds = this.dataSets[dsCode];
+                console.log("ds", ds);
+                let or = [];
+                for (let c of ds.columns) {
+                    let colFilter = {};
+                    colFilter[c.code] = new RegExp('.*' + filter + '.*');
+                    or.push(colFilter);
+                }
+                f = {$and:[f, {$or:or}]}
+            }
             let col = await mongo.collection(dsCode);
-            return col.find().count();
+            return col.find(f).count();
         } catch (error) {
             throw error;
         }
     }
     async getRows(startRow, nRows, dsCode, fromTime, toTime, filter) {
         try {
+            let f = {time:{"$gte":fromTime, "$lte":toTime}}
+            if (filter) {
+                let ds = this.dataSets[dsCode];
+                console.log("ds", ds);
+                let or = [];
+                for (let c of ds.columns) {
+                    let colFilter = {};
+                    colFilter[c.code] = new RegExp('.*' + filter + '.*');
+                    or.push(colFilter);
+                }
+                f = {$and:[f, {$or:or}]}
+            }
             let col = await mongo.collection(dsCode);
-            let rows = await col.find().sort({time:1}).skip(startRow).limit(nRows).map(r => {
+            let rows = await col.find(f).sort({time:1}).skip(startRow).limit(nRows).map(r => {
                 r._id = r._id.toString()
                 return r;
             }).toArray();
@@ -131,29 +193,32 @@ class DataSets {
         let time = this.getTimeForVarPost(dsRow, trigger);
         let varRow = {variable:trigger.variable, time, data:{}};
         if (trigger.differential) {
+            let difValue;
             let col = await mongo.collection(dsCode);
             let filter = {time:{$lt:dsRow.time}};
             if (trigger.discriminator) {
                 filter[trigger.discriminator] = dsRow[trigger.discriminator];
             }
             let res = await col.find(filter).sort({time:-1}).limit(1).toArray();
-            if (!res.length) return null;
-            let prevRow = res[0];
-            //console.log("Differential POST Var Row", prevRow);
-            let difSecs = (dsRow.time - prevRow.time) / 1000;
-            let difValue = dsRow[trigger.value] - prevRow[trigger.value];
-            if (trigger.discardNegatives && difValue < 0) return null;
-            //console.log(dsCode + ":" + difSecs + " [secs], " + dsRow[trigger.value] + " - " + prevRow[trigger.value] + " = " + difValue);
-            if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
-                //console.log("treshold Exceded");
-                return null;
+            if (!res.length) {
+                difValue = dsRow[trigger.value];
+            } else {
+                let prevRow = res[0];
+                //console.log("Differential POST Var Row", prevRow);
+                let difSecs = (dsRow.time - prevRow.time) / 1000;
+                difValue = dsRow[trigger.value] - prevRow[trigger.value];
+                if (trigger.discardNegatives && difValue < 0) {
+                    difValue = dsRow[trigger.value];
+                } else if (trigger.tresholdSecs && difSecs > trigger.tresholdSecs) {
+                    difValue = dsRow[trigger.value];
+                }
             }
             varRow.value = difValue;
             //console.log("DiferenciaL: ", varRow.value);
         } else {
-            if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
+            if (typeof trigger.value == "number") varRow.value = trigger.value;
+            else if (typeof trigger.value == "string") varRow.value = dsRow[trigger.value];
             if (isNaN(varRow.value)) return null;
-            else varRow.value = dsRow[trigger.value];
         }
         if (trigger.data) {
             trigger.data.forEach(field => {
@@ -191,10 +256,18 @@ class DataSets {
                 if (timeCol) {
                     let timeZone = require("../lib/Config").config.timeZone;
                     rows.forEach(r => {
-                        let rowTime = r[timeCol.code];
+                        let rowTime = r[timeCol.code];                        
                         if (!isNaN(parseInt(rowTime))) rowTime = parseInt(rowTime);
                         if (typeof rowTime == "string") rowTime = moment.tz(rowTime, timeZone).valueOf();
-                        r.time = rowTime
+                        if (!rowTime || isNaN(rowTime)) {
+                            rowTime = Date.now();
+                            r[timeCol.code] = rowTime;
+                        }
+                        r.time = rowTime;
+                    });
+                } else {
+                    rows.forEach(r => {
+                        r.time = Date.now();
                     });
                 }
             }

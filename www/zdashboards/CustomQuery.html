@@ -1,0 +1,35 @@
+<div class="container-fuild h-100">
+    <div id="mainRow" class="row h-100">
+        <div class="col-sm-2">
+            <div class="">
+                <select id="edVariable" class="selectpicker show-tick w-100" data-live-search="true" data-style="btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>
+            <div class="mt-2">
+                <select id="edTemporalidad" class="selectpicker show-tick w-100" data-style="btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>   
+            <div class="mt-2 p-2 border rounded">
+                <a id="cmdPeriodo" href="#" class=""></a>
+            </div>
+            <div class="mt-2">
+                <select id="edQuery" class="selectpicker show-tick w-100" data-style="btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>
+            <div class="mt-2">
+                <select id="edAcumulador" class="selectpicker show-tick w-100" data-style="btn btn-sm btn-outline-secondary bg-white px-2" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>
+            <div id="cmdConfigurarRow" class="mt-2">
+                <button id="cmdConfigurar" type="button" class="btn btn-sm w-100 btn-outline-primary">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    Configurar
+                </button>
+            </div>
+            <div class="mt-2 p-2 border rounded">
+                <a id="filtro" href="#" class="" style="font-size: 12px;">Filtro</a>
+            </div>
+        </div>
+        <div class="col-sm-10">
+            <div id="loaderContainer" class="w-100 h-100 border rounded">
+                <div id="chartLoader" class="h-100" data-z-load="zdashboards/EmptyChart"></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -37,19 +37,41 @@ class Dimensions extends ZCustomController {
         this.rowsList.refresh();
     }
 
-    onEdDimension_change() {
+    async onEdDimension_change() {
         this.refreshOptions();
         this.refresh()
     }
 
-    refreshOptions() {
+    refreshOptions() {        
         let dim = this.edDimension.selectedRow;
         if (!dim) return;
         if (!dim.sync) {
             this.cmdSync.hide();
-            return;            
+        } else {
+            this.cmdSync.show();
         }
-        this.cmdSync.show();
+        this.minzQuery = new MinZQuery(window.zRepoClient, dim);
+        this.refreshFilters();
+    }
+
+    async refreshFilters() {
+        if (!this.minzQuery) {            
+            this.filtro.html = "";
+            return;
+        }
+        await this.minzQuery.construyeDescripcionFiltros();
+        let desc = this.minzQuery.descripcionFiltros.map(f => (f.etiqueta)).join(" y ");
+        this.filtro.text = desc || "Filtrar"
+    }
+
+    onEdTextFilter_change() {this.refresh()}
+
+    onFiltro_click() {
+        this.showDialog("common/WMinZFilters", {consulta:this.minzQuery}, q => {
+            this.minzQuery = q;
+            this.refreshFilters();
+            this.refresh();
+        })
     }
 
     onCmdSync_click() {
@@ -82,11 +104,16 @@ class Dimensions extends ZCustomController {
     }
     
     async onRowsList_getRowsCount() {
-        let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
+        if (!this.minzQuery) return 0;
+        let textFilter = this.edTextFilter.value.trim();
+        //let n = await zPost("getRowsCount.zrepo", {dimCode:this.dimension.code})
+        let n = await this.minzQuery.query({format:"dim-rows-count", textFilter});
         return n;
     }
-    async onRowsList_getRowsPage(startRow, nRows) {
-        let page = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow, nRows})
+    async onRowsList_getRowsPage(startRow, nRows) {        
+        //let page = await zPost("getRows.zrepo", {dimCode:this.dimension.code, startRow, nRows})
+        let textFilter = this.edTextFilter.value.trim();
+        let page = await this.minzQuery.query({format:"dim-rows", textFilter, startRow, nRows});
         return page;
     }
     async onCmdAdd_click() {

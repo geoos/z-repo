@@ -1,6 +1,7 @@
 class ZRepo {
     constructor(config) {
         this.config = config;
+        console.log("config", config);
     }
 
     get domains() {
@@ -46,6 +47,25 @@ class ZRepo {
         domains = domains.filter(d => d.dataSets.length);
         domains.forEach(d => {
             d.dataSets.sort((d1, d2) => d1.name > d2.name?1:-1)
+        })
+        return domains;
+    }
+    get variablesTree() {
+        let domains = this.domains;
+        domains.forEach(d => d.variables = []);
+        Object.keys(this.config.variables).forEach(varCode => {
+            let p = varCode.indexOf(".");
+            if (p) {
+                let variable = this.config.variables[varCode];
+                variable.code = varCode;
+                let domain = varCode.substr(0, p);
+                let d = domains.find(d => d.code == domain);
+                if (d) d.variables.push(variable)
+            }
+        });
+        domains = domains.filter(d => d.variables.length);
+        domains.forEach(d => {
+            d.variables.sort((v1, v2) => v1.name > v2.name?1:-1)
         })
         return domains;
     }

@@ -5,6 +5,8 @@ class Main extends ZCustomController {
         zClientDefaultErrorHandler = msg => this.showDialog("common/WError", {message:msg})
         window.config = await zPost("getConfig.zrepo");
         window.zrepo = new ZRepo(window.config);
+        if (!window.config["public-token"]) console.error("No 'public-token' in zrepo config");
+        window.zRepoClient = new ZRepoClient("", window.config["public-token"]);
         this.mainLoader.load("./login/Login")
     }
 

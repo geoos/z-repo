@@ -1,0 +1,57 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 id="title" class="modal-title">Heat Map</h6>
+                <i id="cmdCloseWindow" class="zrepo-panel-close" data-z-clickable="true"></i>
+            </div>
+            <div class="modal-body container">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edRutaH">Agrupador Horizontal</label>
+                            <div class="input-group input-group-sm">
+                                <input id="edRutaH" class="form-control" readonly style="background-color: rgba(68, 68, 67, 1);" />
+                                <div class="input-group-append">
+                                    <button id="cmdSeleccionaRutaH" class="btn btn-outline-secondary" type="button">
+                                        <i class="fas fa-search ml-2"></i>
+                                    </button>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edRutaV">Agrupador Vertical</label>
+                            <div class="input-group input-group-sm">
+                                <input id="edRutaV" class="form-control" readonly style="background-color: rgba(68, 68, 67, 1);" />
+                                <div class="input-group-append">
+                                    <button id="cmdSeleccionaRutaV" class="btn btn-outline-secondary" type="button">
+                                        <i class="fas fa-search ml-2"></i>
+                                    </button>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edIndiceColor">Índice del Color</label>
+                            <input id="edIndiceColor" type="number" min="0" max="32" class="form-control form-control-sm"  />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cmdOk" type="button" class=" btn btn-sm btn-outline-success">
+                    <i class="far fa-check-circle float-left mt-1 mr-2"></i>
+                    Aceptar
+                </button>
+                <button id="cmdCancel" type="button" class="btn btn-sm btn-outline-secondary">Cancelar</button>
+            </div> 
+        </div>
+    </div>
+</div>

@@ -1,8 +1,5 @@
 # multiplataforma, incluye el push
-# docker buildx build --push --platform linux/amd64,linux/arm64 -t docker.homejota.net/geoos/zrepo:latest -t docker.homejota.net/geoos/zrepo:0.59 .
-#
-# docker build -t docker.homejota.net/geoos/zrepo:latest -t docker.homejota.net/geoos/zrepo:0.42 .
-# docker push docker.homejota.net/geoos/zrepo:latest
+# docker buildx build --push --platform linux/amd64,linux/arm64 -t docker.homejota.net/geoos/zrepo:latest -t docker.homejota.net/geoos/zrepo:0.67 .
 #
 FROM node:14-alpine
 EXPOSE 8096

@@ -1,5 +1,7 @@
 class DataSets extends ZCustomController {
-    onThis_init() {        
+    onThis_init() {
+        this.edDesde.value = new Date();
+        this.edHasta.value = new Date();
         this.edDataSet.setGroups(window.zrepo.dataSetsTree, "name", "dataSets");
         this.resizeObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
@@ -18,7 +20,6 @@ class DataSets extends ZCustomController {
 
     refreshDataSet() {
         let ds = this.edDataSet.selectedRow;
-        console.log("dataSet", ds);
         let imports = ds.imports || [];
         let uploads = imports.filter(i => i.type == "upload");
         if (!uploads.length) {
@@ -69,6 +70,10 @@ class DataSets extends ZCustomController {
         this.rowsList.refresh();
     }
 
+    onEdDesde_change() {this.rowsList.refresh()}
+    onEdHasta_change() {this.rowsList.refresh()}
+    onEdFilter_change() {this.rowsList.refresh()}
+
     prepareRow(r) {        
         let ds = this.edDataSet.selectedRow;
         if (ds.temporality != "none") {
@@ -84,12 +89,19 @@ class DataSets extends ZCustomController {
         return r;
     }
 
+    getTimeFilters() {
+        let d0 = this.edDesde.value.startOf("day");
+        let d1 = this.edHasta.value.endOf("day");
+        return {fromTime:d0.valueOf(), toTime:d1.valueOf()};
+    }
     async onRowsList_getRowsCount() {
-        let n = await zPost("getDSRowsCount.zrepo", {dsCode:this.edDataSet.value})
+        let time = this.getTimeFilters();
+        let n = await zPost("getDSRowsCount.zrepo", {dsCode:this.edDataSet.value, fromTime:time.fromTime, toTime:time.toTime, filter:this.edFilter.value})
         return n;
     }
     async onRowsList_getRowsPage(startRow, nRows) {
-        let page = await zPost("getDSRows.zrepo", {dsCode:this.edDataSet.value, startRow, nRows})
+        let time = this.getTimeFilters();
+        let page = await zPost("getDSRows.zrepo", {dsCode:this.edDataSet.value, startRow, nRows, fromTime:time.fromTime, toTime:time.toTime, filter:this.edFilter.value})
         return page.map(r => this.prepareRow(r));
     }
 

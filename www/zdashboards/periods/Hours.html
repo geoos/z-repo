@@ -1,0 +1,38 @@
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <label>Inicio</label>
+        </div>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input id="edStartDate" class="datetimepicker form-control form-control-sm text-center" style="width: 30%; font-size: 12px; padding-top: 15px; padding-bottom: 15px;"  data-z-format="DD/MM/YYYY" />
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="font-size: 12px; background-color: rgba(68, 68, 67, 1);">&nbsp</span>
+                </div>
+                <input id="edStartHour" class="form-control" style="width: 20%; font-size: 12px;" type="number" min="0" max="23" data-z-autochange-delay="300" />
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="font-size: 12px; background-color: rgba(68, 68, 67, 1);">:</span>
+                </div>
+                <select id="edStartMinute" class="form-control" style="width: 30%; font-size: 12px;" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-sm-4">
+            <label>Fin</label>
+        </div>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input id="edEndDate" class="datetimepicker form-control form-control-sm text-center" style="width: 30%; font-size: 12px; padding-top: 15px; padding-bottom: 15px;"  data-z-format="DD/MM/YYYY" />
+                <div class="input-group-prepend">
+                    <span class="input-group-text"  style="font-size: 12px; background-color: rgba(68, 68, 67, 1);">&nbsp</span>
+                </div>
+                <input id="edEndHour" class="form-control" style="width: 20%; font-size: 12px;" type="number" min="0" max="23" data-z-autochange-delay="300" />
+                <div class="input-group-prepend">
+                    <span class="input-group-text"  style="font-size: 12px; background-color: rgba(68, 68, 67, 1);">:</span>
+                </div>
+                <select id="edEndMinute" class="form-control" style="width: 30%; font-size: 12px;" data-z-id-field="code" data-z-label-field="name"></select>
+            </div>
+        </div>
+    </div>
+</div>

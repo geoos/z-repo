@@ -1,0 +1,46 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 id="title" class="modal-title">Gauge</h6>
+                <i id="cmdCloseWindow" class="zrepo-panel-close" data-z-clickable="true"></i>
+            </div>
+            <div class="modal-body container">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="edEscala">Factor de Escala</label>
+                            <input id="edEscala" type="number" min="0.1" max="10" step="0.1" class="form-control form-control-sm"  />
+                        </div>
+                    </div>
+                    <div class="col"></div>
+                </div>
+                <div class="mt-2">
+                    <label>Rangos</label>
+                    <button id="cmdAddRango" class="btn btn-sm btn-outline-success float-right" style="margin-top: -10px;"> 
+                        <i class="far fa-plus-square float-left mt-1 mr-2"></i>
+                        Agregar
+                    </button>
+                </div>
+                <div class="card w-100 mt-2">
+                    <table id="list" class="mt-2 w-100 table table-sm table-hover" data-z-selected-row-class="table-primary" style="font-size: 0.8em;">
+                        <thead>
+                            <th data-z-details-toggler="true" style="width:60px;">Editar</th>
+                            <th data-z-field="range" style="width: 120px;" class="text-center" data-z-cell-class="text-center">Rango</th>
+                            <th data-z-field="label" >Etiqueta</th>
+                            <th data-z-field="fmtColor" style="width: 50px;">Color</th>
+                        </thead>
+                        <tbody>-</tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cmdOk" type="button" class=" btn btn-sm btn-outline-success">
+                    <i class="far fa-check-circle float-left mt-1 mr-2"></i>
+                    Aceptar
+                </button>
+                <button id="cmdCancel" type="button" class="btn btn-sm btn-outline-secondary">Cancelar</button>
+            </div> 
+        </div>
+    </div>
+</div>
