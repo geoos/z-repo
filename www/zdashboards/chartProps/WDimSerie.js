@@ -12,11 +12,7 @@ class WDimSerie extends ZDialog {
         this.edTipoSerie.setRows([{
             code:"bars", name:"Barras"
         }, {
-            code:"3d-bars", name:"Barras 3D"
-        }, {
             code:"columns", name:"Columnas"
-        }, {
-            code:"3d-columns", name:"Columnas 3D"
         }], options.serieType)
     }    
 

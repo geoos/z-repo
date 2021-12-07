@@ -7,10 +7,7 @@ class DimSerie extends ZDashboardElement {
         this.start = start;
         this.end = end;
 
-        if (this.chart) {
-            await this.chart.dispose();
-            this.chart = null;
-        }
+        this.dispose();
 
         if (!this.q || !this.options.ruta) return;            
         if (operation == "refresh") {
@@ -28,88 +25,83 @@ class DimSerie extends ZDashboardElement {
             valor:d.resultado,
             codigo:d.dim.code
         }))
-        console.log("data2", data);
 
-        am4core.useTheme(am4themes_dark);
-        am4core.useTheme(am4themes_animated);
-        let is3d = this.options.serieType == "3d-columns" || this.options.serieType == "3d-bars";
-        let invertedAxes = this.options.serieType == "bars" || this.options.serieType == "3d-bars";
-        let chart;
-        if (is3d) {
-            chart = am4core.create(this.chartContainerId, am4charts.XYChart3D);
-        } else {
-            chart = am4core.create(this.chartContainerId, am4charts.XYChart);
-        }
-        chart.data = data;
+        this.root.setThemes([am5themes_Animated.new(this.root), am5themes_Dark.new(this.root)])
+        let chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {panX: true, panY: true, wheelX: "panX", wheelY: "zoomX"}));
+        chart.set("cursor", am5xy.XYCursor.new(this.root, {behavior: "none"}));
+
+        let invertedAxes = this.options.serieType == "bars";
+        let unit;
+        if (this.q.accum == "n") unit = "N°";
+        else unit = this.q.variable.options?this.q.variable.options.unit:"S/U";            
 
         let categoryAxis, valueAxis;
         if (invertedAxes) {
-            valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-            categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-            categoryAxis.renderer.inversed = true;
-            categoryAxis.renderer.grid.template.location = 0;
+            categoryAxis = chart.yAxes.push(am5xy.CategoryAxis.new(this.root, {
+                maxDeviation: 0,
+                categoryField:"categoria",
+                renderer: am5xy.AxisRendererY.new(this.root, { minGridDistance: 30 }),
+                tooltip: am5.Tooltip.new(this.root, {})
+            }));
+            valueAxis = chart.xAxes.push(am5xy.ValueAxis.new(this.root, {
+                renderer: am5xy.AxisRendererX.new(this.root, {})
+            }));
+            valueAxis.children.push(am5.Label.new(this.root, { text: unit, x:am5.p50, centerX: am5.p50 }), 0);
         } else {
-            valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-            categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+            var xRenderer = am5xy.AxisRendererX.new(this.root, { minGridDistance: 30 });
+            xRenderer.labels.template.setAll({
+              rotation: -90,
+              centerY: am5.p50,
+              centerX: am5.p100,
+              paddingRight: 15
+            });
+            categoryAxis = chart.xAxes.push(am5xy.CategoryAxis.new(this.root, {
+                maxDeviation: 0,
+                categoryField:"categoria",
+                renderer: xRenderer, 
+                tooltip: am5.Tooltip.new(this.root, {})
+            }));
+            valueAxis = chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
+                renderer: am5xy.AxisRendererY.new(this.root, {})
+            }));
+            valueAxis.children.moveValue(am5.Label.new(this.root, { text: unit, rotation: -90, y: am5.p50, centerX: am5.p50 }), 0);
         }
-        categoryAxis.dataFields.category = "categoria";
 
         let series;
         switch (this.options.serieType) {
             case "bars":
+                series = chart.series.push(am5xy.ColumnSeries.new(this.root, {
+                    name:this.q.variable.name, xAxis: valueAxis, yAxis: categoryAxis,
+                    valueXField: "valor", categoryYField: "categoria",
+                    tooltip: am5.Tooltip.new(this.root, { dy: -25, labelText: "{valueX} [[" + unit + "]]"})
+                }));
+                break;
             case "columns":
-                series = chart.series.push(new am4charts.ColumnSeries());
-                break;
-            case "3d-bars":
-            case "3d-columns":
-                series = chart.series.push(new am4charts.ColumnSeries3D());
+                series = chart.series.push(am5xy.ColumnSeries.new(this.root, {
+                    name:this.q.variable.name, xAxis: categoryAxis, yAxis: valueAxis,
+                    valueYField: "valor", categoryXField: "categoria",
+                    tooltip: am5.Tooltip.new(this.root, { dy: -25, labelText: "{valueY} [[" + unit + "]]"})
+                }));
                 break;
         }
-        series.name = this.q.variable.name;
-        if (invertedAxes) {
-            series.dataFields.valueX = "valor";
-            series.dataFields.categoryY = "categoria";
-        } else {
-            series.dataFields.valueY = "valor";
-            series.dataFields.categoryX = "categoria";
-        }
-        
-        if (this.q.accum == "n") {
-            valueAxis.title.text = "N°";
-        } else {
-            valueAxis.title.text = this.q.variable.options?this.q.variable.options.unit:"S/U";
-        }        
-
-        series.tooltipText = this.q.variable.name + `: [bold]{value${invertedAxes?"X":"Y"}}[/]`;
-       
-        chart.cursor = new am4charts.XYCursor();
-        chart.cursor.lineY.opacity = 0;
-
+        let template = series.columns.template;
         if (canDrillDown) {
-            series.columns.template.cursorOverStyle = am4core.MouseCursorStyle.pointer;
-            series.columns.template.events.on("hit", e => {
+            template.set("cursorOverStyle", "crosshair");
+            template.events.on("click", e => {
                 setTimeout(_ => this.drilldown(e.target.dataItem.dataContext.codigo), 50);
             })
         }
 
-        if (this.drillStack.length) {
-            let buttonContainer = chart.plotContainer.createChild(am4core.Container);
-            buttonContainer.shouldClone = false;
-            buttonContainer.align = "left";
-            buttonContainer.valign = "top";
-            buttonContainer.zIndex = Number.MAX_SAFE_INTEGER;
-            buttonContainer.marginTop = 5;
-            buttonContainer.marginLeft = 5;
-            buttonContainer.layout = "horizontal";
+        categoryAxis.data.setAll(data);
+        series.data.setAll(data);
 
-            let colorSet = new am4core.ColorSet();
-            colorSet.next(); colorSet.next();
-            let fillColor = colorSet.next();
-            let button = buttonContainer.createChild(am4core.Button);
-            button.label.text = "< Volver";
-            button.background.fill = fillColor;
-            button.width = 80;
-            button.events.on("hit", _ => {
+        if (this.drillStack.length) {
+            let button = this.root.container.children.unshift(am5.Button.new(this.root, {
+                dx:10, dy:10, 
+                align:"left", valign:"top",
+                label: am5.Label.new(this.root, {text: "< Volver"})
+            }))
+            button.events.on("click", _ => {
                 setTimeout(_ => this.drillUp(), 50);
             });
         }
@@ -118,8 +110,6 @@ class DimSerie extends ZDashboardElement {
     }
 
     drilldown(dimValue) {
-        console.log("drillDown", dimValue);
-        console.log("query", this.q);
         this.drillStack.push(this.q);
         let q2 = MinZQuery.cloneQuery(this.q);
         let p = q2.groupingDimension.lastIndexOf(".");

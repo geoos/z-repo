@@ -358,14 +358,14 @@ class ZRepoClient {
             let filtro, resultado;
             switch (query.tipoQuery) {
                 case "period-summary": {
-                        console.log("period-summary con", query);
                         filtro = {};
                         if (query.filtros) query.filtros.forEach(f => this.construyeFiltro(filtro, f.ruta, f.valor));
                         if (query.filtroFijo) this.construyeFiltro(filtro, query.filtroFijo.ruta, query.filtroFijo.valor);
                         let {promise, controller} = this.queryPeriodSummary(query.variable.code, startTime, endTime, filtro);
                         let buildPromise = new Promise((resolve, reject) => {
                             promise.then(res => {
-                                resolve(this.extraeAcumulador(res, query.acumulador));
+                                if (query.acumulador && query.acumulador.trim().length) resolve(this.extraeAcumulador(res, query.acumulador));
+                                else resolve(res);                                
                             }).catch(err => reject(err))
                         })
                         resultado = {promise:buildPromise, controller}
@@ -525,7 +525,7 @@ class ZRepoClient {
             url += "&hGroupDimension=" + dimensionAgrupadoH;
             url += "&vGroupDimension=" + dimensionAgrupadoV;
             let controller = new AbortController();
-            console.log("zrepo query url", url)
+            //console.log("zrepo query url", url)
             return {promise: this._getJSON(url, controller.signal), controller:controller}
         } catch(error) {
             throw error;

@@ -1,7 +1,6 @@
 class WGauge extends ZDialog {
     onThis_init(options) {
         this.options = options;
-        this.edEscala.value = options.scale;
         this.min = options.min;
         this.max = options.max;
         this.ranges = JSON.parse(JSON.stringify(options.ranges));
@@ -12,11 +11,11 @@ class WGauge extends ZDialog {
 
     refreshRanges() {
         this.rows = [];
-        setTimeout(_ => this.list.refresh(), 10);
         let r0 = {min:this.min, color:this.firstColor, label:this.firstLabel, isFirst:true};
         this.rows.push(r0);
         if (!this.ranges.length) {
             r0.max = this.max; r0.isLast = true;            
+            this.list.refresh();
             return;
         }
         for (let r of this.ranges) {
@@ -26,6 +25,7 @@ class WGauge extends ZDialog {
         }
         let rr = this.rows[this.rows.length - 1];
         rr.max = this.max; rr.isLast = true;
+        this.list.refresh();
     }
 
     onList_getRows() {
@@ -73,6 +73,16 @@ class WGauge extends ZDialog {
         this.ranges.splice(rowIndex - 1, 1);
         this.refreshRanges();
     }
+
+    onCmdAddRange_click() {
+        let n = this.ranges.length;
+        if (!n) {
+            this.ranges.push({value:(this.min + this.max) / 2, color:"#ee1f25", label:"Nuevo Rango"})
+        } else {
+            this.ranges.push({value:(this.ranges[n-1].value + this.max) / 2, color:"#ee1f25", label:"Nuevo Rango"})
+        }
+        this.refreshRanges();
+    }
     
     onCmdCloseWindow_click() {
         this.cancel()
@@ -82,10 +92,8 @@ class WGauge extends ZDialog {
     }
 
     async onCmdOk_click() {
-        let scale = parseFloat(this.edEscala.value);
-        if (scale < 0 || scale > 10) return;
         this.close({
-            scale, min:this.min, max:this.max,
+            min:this.min, max:this.max,
             firstLabel: this.firstLabel, firstColor:this.firstColor,
             ranges: this.ranges
         });

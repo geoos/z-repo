@@ -4,15 +4,17 @@ class WTimeSerie extends ZDialog {
         this.edTipoSerie.setRows([{
             code:"line", name:"Gráfico de Líneas"
         }, {
+            code:"smoothed-line", name:"Gráfico de Líneas Suavizadas"
+        }, {
             code:"columns", name:"Gráfico de Columnas"
         }, {
-            code:"triangles", name:"Triángulos"
+            code:"curved-columns", name:"Columnas Curvas"
         }, {
             code:"area", name:"Gráfico de Área"
         }, {
-            code:"3d-columns", name:"Columnas 3D"
+            code:"smoothed-area", name:"Gráfico de Área Suavizada"
         }, {
-            code:"3d-cylinders", name:"Cilindros 3D"
+            code:"rounded-columns", name:"Columnas Redondeadas"
         }], options.serieType)
         this.edZoomTiempo.checked = options.zoomTiempo;
     }    

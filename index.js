@@ -36,8 +36,8 @@ async function startHTTPServer() {
         let port = config.httpPort;
         httpServer = http.createServer(app);
         httpServer.listen(port, "0.0.0.0", _ => {
-            console.log("[ZRepo HTTP Server 0.67] Listenning at Port " + port);
-            logs.info("[ZRepo HTTP Server 0.67] Listenning at Port " + port)
+            console.log("[ZRepo HTTP Server 0.68] Listenning at Port " + port);
+            logs.info("[ZRepo HTTP Server 0.68] Listenning at Port " + port)
         });
         if (config.mqttPort) {
             const aedes = require("aedes")();

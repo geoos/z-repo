@@ -1,7 +1,5 @@
 class HeatMap extends ZDashboardElement {
-    get code() {return "dim-serie"}
-    get baseContainer() {return this["baseContainer-" + this.zId];}
-    get chartContainer() {return this["heatMapContainer-" + this.zId];}
+    get code() {return "heat-map"}
     onThis_init() {        
     }
     async refresh(start, end, operation = "refresh") {
@@ -13,11 +11,7 @@ class HeatMap extends ZDashboardElement {
         this.start = start;
         this.end = end;
 
-        if (this.chart) {
-            await this.chart.dispose();
-            this.chart = null;
-            this.chartContainer.html = "";
-        }
+        this.dispose();
 
         if (!this.q || !this.options.rutaH || !this.options.rutaV) return;            
         if (operation == "refresh") {
@@ -30,59 +24,27 @@ class HeatMap extends ZDashboardElement {
         let canDrillDownH = this.q.hGroupingDimension.indexOf(".") > 0;
         let canDrillDownV = this.q.vGroupingDimension.indexOf(".") > 0;
         let data = await promise;
-        //console.log("data", data);
-        //data = data.sort((d1, d2) => (d1.dim.order - d2.dim.order));
         data = data.map(d => ({
             hName:d.hDim.name, hCode:d.hDim.code,
             vName:d.vDim.name, vCode:d.vDim.code,
             valor:d.resultado
-        }))
-        //console.log("data2", data);
+        }))        
 
         // Contar filas y columnas para calcular tamaño mínimo
         let filas = {}, columnas = {};
         data.forEach(row => {
-            filas[row.vCode] = true;
-            columnas[row.hCode] = true;
+            filas[row.vCode] = {code:row.vCode, name:row.vName};
+            columnas[row.hCode] = {code:row.hCode, name:row.hName};
         })
-        let nFilas = Object.keys(filas).length;
-        let nColumnas = Object.keys(columnas).length;
-        let minHeight = 100 + 30 * nFilas;    // Leyenda de colores + 30px por fila
-        let minWidth = 300 + 160 * nColumnas; // Labels + 160px por columna
-        this.chartContainer.view.style.setProperty("min-width", minWidth + "px");
-        this.chartContainer.view.style.setProperty("min-height", minHeight + "px");
-
-        am4core.useTheme(am4themes_dark);
-        am4core.useTheme(am4themes_animated);
-        let chart = am4core.create("heatMapContainer-" + this.zId, am4charts.XYChart);
-        chart.data = data;
-        let xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-        xAxis.dataFields.category = "hName";
-        xAxis.renderer.minGridDistance = 40;
-        if (canDrillDownH) {
-            xAxis.renderer.labels.template.cursorOverStyle = am4core.MouseCursorStyle.pointer;
-            xAxis.renderer.labels.template.events.on("hit", e => {
-                this.drilldown("h", e.target.dataItem.dataContext.hCode);
-            });
-        }
-        let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-        yAxis.dataFields.category = "vName";
-        yAxis.renderer.grid.template.disabled = true;
-        yAxis.renderer.inversed = true;
-        yAxis.renderer.minGridDistance = 30;
-        if (canDrillDownV) {
-            yAxis.renderer.labels.template.cursorOverStyle = am4core.MouseCursorStyle.pointer;
-            yAxis.renderer.labels.template.events.on("hit", e => {
-                this.drilldown("v", e.target.dataItem.dataContext.vCode);
-            });
-        }
-
-        let series= chart.series.push(new am4charts.ColumnSeries());
-        series.name = this.q.variable.name;
-        series.dataFields.value = "valor";
-        series.dataFields.categoryX = "hName";
-        series.dataFields.categoryY = "vName";
+        filas = Object.keys(filas).map(key => (filas[key]));
+        columnas = Object.keys(columnas).map(key => (columnas[key]));
         
+        let nFilas = filas.length;
+        let nColumnas = columnas.length;
+
+        this.root.setThemes([am5themes_Animated.new(this.root), am5themes_Dark.new(this.root)]);
+        let chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {panX: false, panY: false, wheelX: "none", wheelY: "none", layout: this.root.verticalLayout}));
+
         let unidad;
         if (this.q.accum == "n") {
             unidad = "N°";
@@ -90,67 +52,117 @@ class HeatMap extends ZDashboardElement {
             unidad = this.q.variable.options.unit;
         }  
 
-        let bgColor = new am4core.InterfaceColorSet().getFor("background");
+        let yRenderer = am5xy.AxisRendererY.new(this.root, {visible: false, minGridDistance: 30});  // , inversed: true
+        //yRenderer.grid.template.set("visible", false);
+        yRenderer.labels.template.setAll({
+            centerY: am5.p50,
+            centerX: am5.p100,
+            paddingRight: 15
+        });
+        if (canDrillDownV) {
+            yRenderer.labels.template.setup = target => {
+                target.set("background", am5.Rectangle.new(this.root, {
+                    fill: am5.color(0x000000),
+                    fillOpacity: 0
+                }));
+            }
+            yRenderer.labels.template.set("cursorOverStyle", "crosshair");
+            yRenderer.labels.template.events.on("click", e => {
+                this.drilldown("v", e.target.dataItem.dataContext.vCode);
+            });
+        }
+        let yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(this.root, {maxDeviation: 0, renderer: yRenderer, categoryField: "name"}));
 
-        let columnTemplate = series.columns.template;
-        columnTemplate.strokeWidth = 1;
-        columnTemplate.strokeOpacity = 0.2;
-        columnTemplate.stroke = bgColor;
-        columnTemplate.tooltipText = "{hName}, {vName}: {value.workingValue.formatNumber('#.')}";
-        columnTemplate.width = am4core.percent(100);
-        columnTemplate.height = am4core.percent(100);
+        let xRenderer = am5xy.AxisRendererX.new(this.root, {visible: false, minGridDistance: 30, opposite:true});
+        //xRenderer.grid.template.set("visible", false);
+        xRenderer.labels.template.setAll({
+            rotation: -90,
+            centerY: am5.p50,
+            centerX: am5.p100,
+            paddingRight: 15,
+        });
+        if (canDrillDownH) {
+            xRenderer.labels.template.setup = target => {
+                target.set("background", am5.Rectangle.new(this.root, {
+                    fill: am5.color(0x000000),
+                    fillOpacity: 0
+                }));
+            }
+            xRenderer.labels.template.set("cursorOverStyle", "crosshair");
+            xRenderer.labels.template.events.on("click", e => {
+                this.drilldown("h", e.target.dataItem.dataContext.hCode);
+            });
+        }
+        let xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(this.root, {renderer: xRenderer, categoryField: "name"}));
 
-        let labelBullet = series.bullets.push(new am4charts.LabelBullet());
-        labelBullet.label.text = "{value} " + unidad + "";
-        labelBullet.locationY = 0.5;
-        labelBullet.label.hideOversized = true;
+        let series = chart.series.push(am5xy.ColumnSeries.new(this.root, {
+            calculateAggregates: true,
+            stroke: am5.color(0xffffff),
+            clustered: false,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            categoryXField: "hName",
+            categoryYField: "vName",
+            valueField: "valor"
+        }));
 
-        series.heatRules.push({
-            target: columnTemplate,
-            property: "fill",
-            min: am4core.color(bgColor),
-            max: chart.colors.getIndex(this.options.indiceColor)
+        series.columns.template.setAll({
+            tooltipText: "{categoryY}, {categoryX}: {value} [[" + unidad + "]]",
+            strokeOpacity: 1,
+            strokeWidth: 2,
+            width: am5.percent(100),
+            height: am5.percent(100)
         });
 
-        let heatLegend = chart.bottomAxesContainer.createChild(am4charts.HeatLegend);
-        heatLegend.width = am4core.percent(100);
-        heatLegend.series = series;
-        heatLegend.valueAxis.renderer.labels.template.fontSize = 9;
-        heatLegend.valueAxis.renderer.minGridDistance = 30;
-        this.heatLegend = heatLegend;
+        series.set("heatRules", [{
+            target: series.columns.template,
+            min: am5.color(0xfffb77),
+            max: am5.color(0xfe131a),
+            dataField: "value",
+            key: "fill"
+        }]);
 
-        series.columns.template.events.on("over", event => {
-            this.handleHover(event.target);
-        })        
-        series.columns.template.events.on("hit", event => {
-            this.handleHover(event.target);
-        })
-        series.columns.template.events.on("out", event => {
-            heatLegend.valueAxis.hideTooltip();
-        })
+        let heatLegend = chart.bottomAxesContainer.children.push(am5.HeatLegend.new(this.root, {
+            orientation: "horizontal",
+            endColor: am5.color(0xfffb77),
+            startColor: am5.color(0xfe131a)
+        }));
+
+        series.columns.template.events.on("pointerover", function(event) {
+            var di = event.target.dataItem;
+            if (di) {
+                heatLegend.showValue(di.get("value", 0));
+            }
+        });
+
+        this.chartContainer.style.setProperty("min-height", "300px");
+        series.events.on("datavalidated", () => {
+            heatLegend.set("startValue", series.getPrivate("valueHigh"));
+            heatLegend.set("endValue", series.getPrivate("valueLow"));
+            setTimeout(_ => {
+                let cellHeight = 30, cellWidth = 50;
+                let adjustHeight = nFilas * cellHeight + xAxis.height() + heatLegend.height() + 40;
+                this.chartContainer.style.setProperty("min-height", adjustHeight + "px");
+                let adjustWidth = nColumnas * cellWidth + yAxis.width() + 50;
+                this.chartContainer.style.setProperty("min-width", adjustWidth + "px");
+            }, 200);
+            
+        });
+
+        xAxis.data.setAll(columnas);
+        yAxis.data.setAll(filas);
+        series.data.setAll(data);
 
         if (this.drillStack.length) {
-            let buttonContainer = chart.plotContainer.createChild(am4core.Container);
-            buttonContainer.shouldClone = false;
-            buttonContainer.align = "left";
-            buttonContainer.valign = "top";
-            buttonContainer.zIndex = Number.MAX_SAFE_INTEGER;
-            buttonContainer.marginTop = 5;
-            buttonContainer.marginLeft = 5;
-            buttonContainer.layout = "horizontal";
-
-            let colorSet = new am4core.ColorSet();
-            colorSet.next(); colorSet.next();
-            let fillColor = colorSet.next();
-            let button = buttonContainer.createChild(am4core.Button);
-            button.label.text = "< Volver";
-            button.background.fill = fillColor;
-            button.width = 80;
-            button.events.on("hit", _ => {
+            let button = this.root.container.children.unshift(am5.Button.new(this.root, {
+                dx:10, dy:10, 
+                align:"left", valign:"top",
+                label: am5.Label.new(this.root, {text: "< Volver"})
+            }))
+            button.events.on("click", _ => {
                 setTimeout(_ => this.drillUp(), 50);
             });
         }
-
         this.chart = chart;
     }
 
@@ -163,8 +175,6 @@ class HeatMap extends ZDashboardElement {
     }
 
     drilldown(pos, dimValue) {
-        console.log("drillDown", pos, dimValue);
-        console.log("query", this.q);
         this.drillStack.push({query:this.q, hDrillFilter:this.hDrillFilter, vDrillFilter:this.vDrillFilter});
         let q2 = MinZQuery.cloneQuery(this.q);
         if (pos == "h") {

@@ -323,7 +323,7 @@ class MinZQuery {
     }
 
     query(args) {
-        console.log("query", args);
+        // console.log("query", args);
         let fixedFilter = this.fixedFilter?JSON.parse(JSON.stringify(this.fixedFilter)):null;
         if (args.objectCode && fixedFilter) {
             if (fixedFilter.valor == "${codigo-objeto}") fixedFilter.valor = args.objectCode;

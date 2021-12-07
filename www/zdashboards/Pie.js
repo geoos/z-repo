@@ -7,10 +7,7 @@ class Pie extends ZDashboardElement {
             if (operation == "refresh") this.drillStack = [];            
             this.start = start;
             this.end = end;
-            if (this.chart) {
-                this.chart.dispose();
-                this.chart = null;
-            }            
+            this.dispose();
             if (!this.q || !this.options.ruta) return;            
             if (operation == "refresh") {
                 this.q.groupingDimension = this.options.ruta;
@@ -29,73 +26,87 @@ class Pie extends ZDashboardElement {
             }))
             //console.log("data2", data);
 
-            am4core.useTheme(am4themes_dark);
-            am4core.useTheme(am4themes_animated);     
-            let chart, pieSeries;
-            let es3d = this.options.tipoTorta == "3d" || this.options.tipoTorta == "dona-3d";
-            if (es3d) {       
-                chart = am4core.create(this.chartContainerId, am4charts.PieChart3D);
-            } else {
-                chart = am4core.create(this.chartContainerId, am4charts.PieChart);
-            }
-            chart.data = data;
-            if (es3d) {
-                pieSeries = chart.series.push(new am4charts.PieSeries3D());
-            } else {
-                pieSeries = chart.series.push(new am4charts.PieSeries());
-            }
-            pieSeries.dataFields.value = "valor";
-            pieSeries.dataFields.category = "categoria";
-            if (this.options.tipoTorta == "dona-2d" || this.options.tipoTorta == "dona-gradiente" || this.options.tipoTorta == "dona-3d") {
-                pieSeries.innerRadius = am4core.percent(50);
-            }
+            let esDona = this.options.tipoTorta == "dona-2d" || this.options.tipoTorta == "dona-gradiente";
+            this.root.setThemes([am5themes_Animated.new(this.root), am5themes_Dark.new(this.root)])
+            let chart = this.root.container.children.push(am5percent.PieChart.new(this.root, {
+                innerRadius: esDona?am5.percent(50):undefined,
+                layout: (this.options.leyendas == "top" || this.options.leyendas == "bottom")?this.root.verticalLayout:this.root.horizontalLayout
+            }));
+            let pieSeries = chart.series.push(
+                am5percent.PieSeries.new(this.root, {
+                    valueField: "valor",
+                    categoryField: "categoria",
+                    endAngle: 270
+                })
+            );
             if (this.options.leyendas != "inline" && this.options.leyendas != "none") {
-                pieSeries.ticks.template.disabled = true;
-                pieSeries.labels.template.disabled = true;                
+                pieSeries.ticks.template.set("visible", false);
+                pieSeries.labels.template.set("visible", false);
+            }
+            if (this.options.tipoTorta == "dona-gradiente") {
+                let rgm = am5.RadialGradient.new(this.root, {
+                    stops: [{brighten: -0.8}, {brighten: -0.8}, {brighten: -0.5}, {brighten: 0}, {brighten: -0.5}]
+                });
+                pieSeries.slices.template.set("strokeOpacity", 0);
+                pieSeries.slices.template.set("fillGradient", rgm);
             }
             
-            if (this.options.tipoTorta == "dona-gradiente") {
-                let rgm = new am4core.RadialGradientModifier();
-                rgm.brightnesses.push(-0.8, -0.8, -0.5, 0, - 0.5);
-                pieSeries.slices.template.fillModifier = rgm;
-                pieSeries.slices.template.strokeModifier = rgm;
-                pieSeries.slices.template.strokeOpacity = 0.4;
-                pieSeries.slices.template.strokeWidth = 0;
-            }
-
             if (canDrillDown) {
-                pieSeries.slices.template.cursorOverStyle = am4core.MouseCursorStyle.pointer;
-                pieSeries.slices.template.events.on("hit", e => {
+                pieSeries.slices.template.cursorOverStyle = "crosshair";
+                pieSeries.slices.template.events.on("click", e => {
                     setTimeout(_ => this.drilldown(e.target.dataItem.dataContext.codigo), 50);
                 })
             }
 
+            let legend;
             if (this.options.leyendas != "inline" && this.options.leyendas != "none") {
-                chart.legend = new am4charts.Legend();
-                chart.legend.position = this.options.leyendas;
+                if (this.options.leyendas == "right") {
+                    legend = chart.children.push(am5.Legend.new(this.root, {
+                        centerY: am5.percent(50),
+                        y: am5.percent(50),
+                        marginTop: 15,
+                        marginBottom: 15,
+                        layout: this.root.verticalLayout
+                    }));
+                } else if (this.options.leyendas == "left") {
+                    legend = chart.children.unshift(am5.Legend.new(this.root, {
+                        centerY: am5.percent(50),
+                        y: am5.percent(50),
+                        marginTop: 15,
+                        marginBottom: 15,
+                        layout: this.root.verticalLayout
+                    }));
+                } else if (this.options.leyendas == "top") {
+                    legend = chart.children.unshift(am5.Legend.new(this.root, {
+                        centerX: am5.percent(50),
+                        x: am5.percent(50),
+                        marginTop: 15,
+                        marginBottom: 15,
+                        layout: this.root.horizontalLayout
+                    }));
+                } else if (this.options.leyendas == "bottom") {
+                    legend = chart.children.push(am5.Legend.new(this.root, {
+                        centerX: am5.percent(50),
+                        x: am5.percent(50),
+                        marginTop: 15,
+                        marginBottom: 15,
+                        layout: this.root.horizontalLayout
+                    }));
+                }
             }
 
+            pieSeries.data.setAll(data);
+            if (legend) legend.data.setAll(pieSeries.dataItems);
+
             if (this.drillStack.length) {
-                let buttonContainer = chart.chartContainer.createChild(am4core.Container);
-                buttonContainer.shouldClone = false;
-                buttonContainer.align = "left";
-                buttonContainer.valign = "top";
-                buttonContainer.zIndex = Number.MAX_SAFE_INTEGER;
-                buttonContainer.marginTop = 5;
-                buttonContainer.marginLeft = 5;
-                buttonContainer.layout = "horizontal";
-    
-                let colorSet = new am4core.ColorSet();
-                colorSet.next(); colorSet.next();
-                let fillColor = colorSet.next();
-                let button = buttonContainer.createChild(am4core.Button);
-                button.label.text = "< Volver";
-                button.background.fill = fillColor;
-                button.width = 80;
-                button.events.on("hit", _ => {
-                    setTimeout(_ => this.drillUp(), 50);
-                });
-            }
+            let button = chart.chartContainer.children.push(am5.Button.new(this.root, {
+                dx:10, dy:10, 
+                label: am5.Label.new(this.root, {text: "< Volver"})
+            }))
+            button.events.on("click", _ => {
+                setTimeout(_ => this.drillUp(), 50);
+            });
+        }
 
             this.chart = chart;
         } catch(error) {

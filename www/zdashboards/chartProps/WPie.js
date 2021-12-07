@@ -28,10 +28,6 @@ class WPie extends ZDialog {
             code:"dona-2d", name:"Dona 2D"
         }, {
             code:"dona-gradiente", name:"Dona con Gradiente"
-        }, {
-            code:"3d", name:"Pie 3D"
-        }, {
-            code:"dona-3d", name:"Dona 3D"
         }], options.tipoTorta)
     }    
 

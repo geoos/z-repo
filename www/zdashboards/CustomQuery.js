@@ -5,7 +5,8 @@ const queryCharts = {
     "dim-serie":"zdashboards/DimSerie",
     "heatmap":"zdashboards/HeatMap",
     "gauge":"zdashboards/Gauge",
-    "time-dim":"zdashboards/TimeDim"
+    "time-dim":"zdashboards/TimeDim",
+    "labels":"zdashboards/Labels"
 }
 
 class CustomQuery extends ZCustomController {    
@@ -13,7 +14,7 @@ class CustomQuery extends ZCustomController {
     get variable() {return this.edVariable.selectedRow}
 
     async onThis_init() {
-        am4core.options.autoDispose = true;
+        //am4core.options.autoDispose = true;
         this.edVariable.setGroups(window.zrepo.variablesTree, "name", "variables");
         this.edQuery.setRows([{
             code:"time-serie", name:"Serie de Tiempo"
@@ -27,6 +28,8 @@ class CustomQuery extends ZCustomController {
             code:"gauge", name:"Gauge"
         }, {
             code:"time-dim", name:"Serie Temporal Dimensiones"
+        }, {
+            code:"labels", name:"Resumen (Etiquetas)"
         }])        
         this.edAcumulador.setRows([{
             code:"value", name:"Suma en Período"
@@ -126,7 +129,7 @@ class CustomQuery extends ZCustomController {
     }
     cambioQuery() {
         this.inicializaOpcionesQuery();
-        this.rebuildQuery();        
+        this.rebuildQuery();
     }
     cambioAcumulador() {
         if (this.minzQuery) this.minzQuery.accum = this.edAcumulador.value;
@@ -139,7 +142,7 @@ class CustomQuery extends ZCustomController {
         } else {
             this.minzQuery = new MinZQuery(window.zRepoClient, this.variable);
             this.minzQuery.temporality = nivelesTemporalidad[this.edTemporalidad.value];
-            this.minzQuery.accum = this.edAcumulador.value;    
+            this.minzQuery.accum = this.edQuery.value == "labels"?"":this.edAcumulador.value;    
         }
         this.cambioFiltro(); // Llama a callRefreshChart
     }
@@ -152,7 +155,8 @@ class CustomQuery extends ZCustomController {
             "heatmap":"./chartProps/WHeatMap",
             "gauge":"./chartProps/WGauge",
             "time-serie":"./chartProps/WTimeSerie",
-            "time-dim":"./chartProps/WTimeDim"
+            "time-dim":"./chartProps/WTimeDim",
+            "labels":"./chartProps/WLabels",
         }
         this.showDialog(w[this.edQuery.value], this.opcionesQuery, opciones => {
             opciones.variable = this.variable;
@@ -185,6 +189,7 @@ class CustomQuery extends ZCustomController {
     }
 
     inicializaOpcionesQuery() {
+        this.edAcumulador.show();
         switch(this.edQuery.value) {
             case "time-serie":
                 this.cmdConfigurarRow.show();
@@ -218,8 +223,6 @@ class CustomQuery extends ZCustomController {
             case "gauge":
                 this.cmdConfigurarRow.show();
                 this.opcionesQuery = {
-                    //min:0, max:100,
-                    scale:0.7,
                     min:0, max:100000,
                     firstColor:"#0f9747",
                     firstLabel:"Bajo",
@@ -238,6 +241,11 @@ class CustomQuery extends ZCustomController {
                     leyendas:"left",
                     variable:this.minzQuery.variable
                 };
+                break;
+            case "labels":
+                this.cmdConfigurarRow.show();
+                this.edAcumulador.hide();
+                this.opcionesQuery = {layout:{c:{text:"${sum}"}}};
                 break;
         }
     }

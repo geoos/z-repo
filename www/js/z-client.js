@@ -4,7 +4,9 @@ window.zSecurityToken = null;
 
 function zPost(url, args, onOk, onError) {
     if (!onOk && !onError) return zPostProm(url, args);
-    let finalUrl = zClientURLPrefix?zClientURLPrefix + url:url;
+    let finalUrl;
+    if (url.startsWith("http")) finalUrl = url;
+    else finalUrl = zClientURLPrefix?zClientURLPrefix + url:url;
     var xhr = new XMLHttpRequest();
     xhr.open("POST", finalUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/json');

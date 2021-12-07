@@ -4,10 +4,7 @@ class Gauge extends ZDashboardElement {
     }
     async refresh(start, end) {
         try {
-            if (this.chart) {
-                this.chart.dispose();
-                this.chart = null;
-            }            
+            this.dispose();
             if (!this.q) return;            
             let {promise, controller} = await this.q.query({
                 format:"period-summary", startTime:start.valueOf(), endTime:end.valueOf()
@@ -17,10 +14,56 @@ class Gauge extends ZDashboardElement {
 
             let scale = this.options.scale;
 
-            am4core.useTheme(am4themes_dark);
-            am4core.useTheme(am4themes_animated);     
-            let chart = am4core.create(this.chartContainerId, am4charts.GaugeChart);
+            this.root.setThemes([am5themes_Animated.new(this.root), am5themes_Dark.new(this.root)]);
+            let chart = this.root.container.children.push(am5radar.RadarChart.new(this.root, {
+                panX: false, panY: false, startAngle: 160,endAngle: 380
+            }));
+            let axisRenderer = am5radar.AxisRendererCircular.new(this.root, {innerRadius: -40});
+            axisRenderer.grid.template.setAll({
+                stroke: this.root.interfaceColors.get("background"),
+                visible: true,
+                strokeOpacity: 0.8
+            });
 
+            let xAxis = chart.xAxes.push(am5xy.ValueAxis.new(this.root, {
+                maxDeviation: 0,
+                min: this.options.min,
+                max: this.options.max,
+                strictMinMax: true,
+                renderer: axisRenderer
+            }));
+
+            let axisDataItem = xAxis.makeDataItem({});
+            let clockHand = am5radar.ClockHand.new(this.root, {pinRadius: am5.percent(20), radius: am5.percent(100), bottomWidth: 40})
+            let bullet = axisDataItem.set("bullet", am5xy.AxisBullet.new(this.root, {sprite: clockHand}));
+            xAxis.createAxisRange(axisDataItem);
+
+            let label = chart.radarContainer.children.push(am5.Label.new(this.root, {
+                fill: am5.color(0xffffff),
+                centerX: am5.percent(50),
+                textAlign: "center",
+                centerY: am5.percent(50),
+                fontSize: "3em"
+            }));
+
+            axisDataItem.set("value", this.options.min);
+            bullet.get("sprite").on("rotation", _ => {
+                let value = axisDataItem.get("value");
+                let fill = am5.color(0x000000);
+                xAxis.axisRanges.each(axisRange => {
+                    if (value >= axisRange.get("value") && value <= axisRange.get("endValue")) {
+                        fill = axisRange.get("axisFill").get("fill");
+                    }
+                })
+                label.set("text", Math.round(value).toString());
+
+                clockHand.pin.animate({ key: "fill", to: fill, duration: 500, easing: am5.ease.out(am5.ease.cubic) })
+                clockHand.hand.animate({ key: "fill", to: fill, duration: 500, easing: am5.ease.out(am5.ease.cubic) })
+            });
+            chart.bulletsContainer.set("mask", undefined);
+
+
+            /*
             chart.hiddenState.properties.opacity = 0;
             chart.fontSize = 11 * scale;
             chart.innerRadius = am4core.percent(80);
@@ -40,8 +83,10 @@ class Gauge extends ZDashboardElement {
             axis.renderer.grid.template.disabled = true;
             axis.renderer.labels.template.radius = am4core.percent(15);
             axis.renderer.labels.template.fontSize = (1.3 * scale) + "em";
+            */
 
             // Axis for ranges
+            /*
             let axis2 = chart.xAxes.push(new am4charts.ValueAxis());
             axis2.min = this.options.min;
             axis2.max = this.options.max;
@@ -54,6 +99,7 @@ class Gauge extends ZDashboardElement {
             axis2.renderer.labels.template.fill = am4core.color("#000");
             axis2.renderer.labels.template.fontWeight = "bold";
             axis2.renderer.labels.template.fillOpacity = 0.3;
+            */
 
             let ranges = [{fromValue:this.options.min, color:this.options.firstColor, label:this.options.firstLabel}];
             for (let r of this.options.ranges) {
@@ -64,7 +110,11 @@ class Gauge extends ZDashboardElement {
             ranges[ranges.length - 1].toValue = this.options.max;
             
             for (let r of ranges) {
-                var range = axis2.axisRanges.create();
+                var axisRange = xAxis.createAxisRange(xAxis.makeDataItem({}));
+                axisRange.setAll({value: r.fromValue, endValue: r.toValue});
+                axisRange.get("axisFill").setAll({visible: true, fill: am5.color(r.color), fillOpacity: 0.8});                
+                axisRange.get("label").setAll({text: r.label, inside: true, radius: 15, fontSize: "0.9em", fill: this.root.interfaceColors.get("background")}); // * scale
+                /*
                 range.axisFill.fill = am4core.color(r.color);
                 range.axisFill.fillOpacity = 0.8;
                 range.axisFill.zIndex = -1;
@@ -81,8 +131,10 @@ class Gauge extends ZDashboardElement {
                 range.label.paddingBottom = -5 * scale;
                 range.label.fontSize = (1.7 * scale) + "em";
                 range.label.fill = "black";
+                */
             }
 
+            /*
             let label2 = chart.radarContainer.createChild(am4core.Label);
             label2.isMeasured = false;
             label2.fontSize = (2 * scale) + "em";
@@ -117,6 +169,14 @@ class Gauge extends ZDashboardElement {
                 //hand.fill = am4core.color("#444");
                 hand.stroke = am4core.color("#000");
             }
+            */
+
+            axisDataItem.animate({
+                key: "value",
+                to: data,
+                duration: 500,
+                easing: am5.ease.out(am5.ease.cubic)
+            });
 
             this.chart = chart;
         } catch(error) {

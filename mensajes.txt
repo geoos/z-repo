@@ -1,0 +1,351 @@
+
+
+
+***** Diagnóstico
+{
+  "fechaInicio": "27-10-2021 09:00:02",
+  "etapa": "Diagnostico",
+  "orden_trabajo_apia": "12110350-491822",
+  "fechaTermino": "03-11-2021 11:58:30",
+  "usuario": "Alvaro Ignacio coello Riquelme",
+  "orden_trabajo_manager": "491822",
+  "usuario_login": "alvaro.coello"
+}
+
+***** Presupuesto
+{
+  "dondeEnviarNumreg": "3",
+  "totalNeto": 0,
+  "etapa": "Presupuesto",
+  "orden_trabajo_apia": "12110334-491792",
+  "fechaTermino": "03-11-2021 11:58:56",
+  "totalIva": 0,
+  "orden_trabajo_manager": "491792",
+  "usuario_login": "camilo.godoy",
+  "totalMO": 0,
+  "totalRepuesto": 0,
+  "fechaInicio": "03-11-2021 11:48:50",
+  "dondeEnviar": "Enviar a Cotización",
+  "usuario": "Camilo Godoy",
+  "ManosObraInsumos": [
+    {
+      "descripcion": "E.I. INY DETROIT N/S/L",
+      "codigo": "EIINYDET600",
+      "descuento": 0,
+      "utilizar": "false",
+      "valor_unit": 10674,
+      "cantidad": 6
+    },
+    {
+      "descripcion": "M.O. INY DETROIT N/S/L",
+      "codigo": "INYDET600",
+      "descuento": 0,
+      "utilizar": "false",
+      "valor_unit": 10674,
+      "cantidad": 6
+    },
+    {
+      "descripcion": "INSUMOS INYECT.",
+      "codigo": "88Y01",
+      "descuento": 0,
+      "utilizar": "false",
+      "valor_unit": 1571,
+      "cantidad": 6
+    }
+  ],
+  "Piezas": [
+    {
+      "descripcion": "No Encontrado",
+      "codigo": "R5237045",
+      "solicita_cotizacion": "true",
+      "descuento": 0,
+      "utilizar": "true",
+      "valor_unit": 0,
+      "cantidad": 6
+    }
+  ],
+  "totalFinal": 0
+}
+
+***** Evaluación
+{
+  "fechaInicio": "03-11-2021 11:46:59",
+  "etapa": "Evaluación",
+  "orden_trabajo_apia": "12111002-491936",
+  "fechaTermino": "03-11-2021 12:02:03",
+  "usuario": "Bryan Rafael Caniuqueo Rupayan",
+  "ManosObraInsumos": [
+    {
+      "descripcion": "M.O. INY DELPHI CR",
+      "codigo": "INYDEL312",
+      "cantidad": 4
+    },
+    {
+      "descripcion": "M.O. INY DELPHI CR",
+      "codigo": "INYDEL312",
+      "cantidad": 4
+    },
+    {
+      "descripcion": "INSUMOS INYECT.",
+      "codigo": "88Y01",
+      "cantidad": 4
+    }
+  ],
+  "orden_trabajo_manager": "491936",
+  "usuario_login": "bryan.caniuqueo",
+  "Piezas": [
+    {
+      "descripcion": "GOLILLAS",
+      "codigo": "9001-850J",
+      "codigo_pieza_apia": 17,
+      "cantidad": 4,
+      "cod_causa": 0,
+      "cod_falla": 0
+    },
+    {
+      "descripcion": "VALVULA",
+      "codigo": "",
+      "codigo_pieza_apia": 9,
+      "cantidad": 0,
+      "cod_causa": 3,
+      "cod_falla": 58
+    },
+    {
+      "descripcion": "AGUJA",
+      "codigo": "",
+      "codigo_pieza_apia": 10,
+      "cantidad": 0,
+      "cod_causa": 3,
+      "cod_falla": 1
+    }
+  ]
+}
+
+***** Compra
+{
+  "fechaInicio": "03-11-2021 11:46:24",
+  "etapa": "Compra",
+  "orden_trabajo_apia": "12110366-491850",
+  "fechaTermino": "03-11-2021 12:05:49",
+  "usuario": "Hector Sandoval",
+  "orden_trabajo_manager": "491850",
+  "usuario_login": "hector.sandoval"
+}
+
+*** Informe Detallado
+{
+  "fechaInicio": "03-11-2021 09:26:26",
+  "etapa": "Informe Detallado",
+  "orden_trabajo_apia": "12111021-491964",
+  "fechaTermino": "03-11-2021 12:12:16",
+  "usuario": "Juan Carlos Muñoz",
+  "orden_trabajo_manager": "491964",
+  "usuario_login": "juan.munoz"
+}
+
+***** Reparación
+{
+  "fechaInicio": "03-11-2021 12:27:28",
+  "etapa": "Reparación",
+  "orden_trabajo_apia": "12110411-491920",
+  "fechaTermino": "03-11-2021 12:27:41",
+  "usuario": "Francisco Zamorano",
+  "orden_trabajo_manager": "491920",
+  "usuario_login": "francisco.zamorano"
+}
+
+***** Embalaje
+{
+  "fechaInicio": "03-11-2021 12:27:41",
+  "etapa": "Embalaje",
+  "orden_trabajo_apia": "12110411-491920",
+  "fechaTermino": "03-11-2021 12:30:05",
+  "usuario": "Francisco Zamorano",
+  "orden_trabajo_manager": "491920",
+  "usuario_login": "francisco.zamorano"
+}
+
+***** Limpieza (Ultrasonido)
+{
+  "fechaInicio": "29-10-2021 16:33:43",
+  "etapa": "Limpieza (Ultrasonido)",
+  "orden_trabajo_apia": "12110071-491282",
+  "fechaTermino": "03-11-2021 12:48:16",
+  "usuario": "Marcelo Ignacio araya Manriquez",
+  "orden_trabajo_manager": "491282",
+  "usuario_login": "marcelo.araya"
+}
+
+***** Cotización
+{
+  "fechaInicio": "03-11-2021 11:58:57",
+  "etapa": "Cotizacion",
+  "orden_trabajo_apia": "12110334-491792",
+  "fechaTermino": "03-11-2021 12:52:03",
+  "usuario": "Hector Sandoval",
+  "orden_trabajo_manager": "491792",
+  "usuario_login": "hector.sandoval"
+}
+
+***** Espera Respuesta de Cliente
+{
+  "totalNeto": 1376099,
+  "etapa": "Espera Respuesta de Cliente",
+  "orden_trabajo_apia": "12110378-491867",
+  "fechaTermino": "03-11-2021 12:55:54",
+  "totalIva": 261458,
+  "orden_trabajo_manager": "491867",
+  "usuario_login": "camilo.godoy",
+  "totalMO": 181723,
+  "totalRepuesto": 1194376,
+  "fechaInicio": "02-11-2021 09:30:54",
+  "usuario": "Camilo Godoy",
+  "ManosObraInsumos": [
+    {
+      "descripcion": "M.O.BBA DELPHI MOD EPIC",
+      "codigo": "BBADELEPIC",
+      "descuento": 0,
+      "utilizar": "true",
+      "valor_unit": 85357,
+      "cantidad": 1
+    },
+    {
+      "descripcion": "E.I.BBA DELPHI MOD EPIC",
+      "codigo": "EIBBADELEPIC",
+      "descuento": 0,
+      "utilizar": "true",
+      "valor_unit": 85357,
+      "cantidad": 1
+    },
+    {
+      "descripcion": "INSUMO BBA.",
+      "codigo": "88B01",
+      "descuento": 0,
+      "utilizar": "true",
+      "valor_unit": 11009,
+      "cantidad": 1
+    }
+  ],
+  "Piezas": [
+    {
+      "descripcion": "ROTOR SENSOR",
+      "codigo": "9160-114A",
+      "solicita_cotizacion": "true",
+      "descuento": 20,
+      "utilizar": "true",
+      "valor_unit": 309060,
+      "cantidad": 1
+    },
+    {
+      "descripcion": "CABEZAL EPIC FIAT",
+      "codigo": "9160-124LS",
+      "solicita_cotizacion": "true",
+      "descuento": 20,
+      "utilizar": "true",
+      "valor_unit": 1077965,
+      "cantidad": 1
+    },
+    {
+      "descripcion": "RETEN DEL EPIC FIAT",
+      "codigo": "9167-403",
+      "solicita_cotizacion": "false",
+      "descuento": 20,
+      "utilizar": "true",
+      "valor_unit": 17346,
+      "cantidad": 1
+    },
+    {
+      "descripcion": "KIT REPARACION EPIC",
+      "codigo": "9109-770",
+      "solicita_cotizacion": "false",
+      "descuento": 20,
+      "utilizar": "true",
+      "valor_unit": 88599,
+      "cantidad": 1
+    }
+  ],
+  "totalFinal": 1637557,
+  "fecha_comp_reparacion": ""
+}
+
+***** Preparación de Repuestos
+{
+  "fechaInicio": "29-10-2021 15:45:20",
+  "etapa": "Preparación de Repuestos",
+  "orden_trabajo_apia": "12110395-491891",
+  "fechaTermino": "03-11-2021 13:15:38",
+  "usuario": "Business Class User",
+  "orden_trabajo_manager": "491891",
+  "usuario_login": "busClass"
+}
+
+***** Limpieza (Arenado)
+{
+  "fechaInicio": "03-11-2021 12:48:16",
+  "etapa": "Limpieza (Arenado)",
+  "orden_trabajo_apia": "12110071-491282",
+  "fechaTermino": "03-11-2021 13:35:02",
+  "usuario": "Marcelo Ignacio araya Manriquez",
+  "orden_trabajo_manager": "491282",
+  "usuario_login": "marcelo.araya"
+}
+
+***** Desarme Turbos
+{
+  "fechaInicio": "03-11-2021 11:45:09",
+  "etapa": "Desarme Turbos",
+  "orden_trabajo_apia": "12111027-491986",
+  "fechaTermino": "03-11-2021 13:48:38",
+  "usuario": "David Hidalgo",
+  "orden_trabajo_manager": "491986",
+  "usuario_login": "david.hidalgo"
+}
+
+***** Validación de Presupuesto
+{
+  "fechaInicio": "02-11-2021 17:09:49",
+  "etapa": "Validación de Presupuesto",
+  "orden_trabajo_apia": "12110368-491852",
+  "fechaTermino": "03-11-2021 13:49:07",
+  "usuario": "Hector Sandoval",
+  "orden_trabajo_manager": "491852",
+  "usuario_login": "hector.sandoval"
+}
+
+***** OT Creada
+{
+  "numero_serie": "5267706",
+  "marca_numreg": 8,
+  "tipo_componente_numreg": 1759,
+  "fecha_llegada": "03-11-2021 13:49:17",
+  "hora_llegada": "01:49:17",
+  "numero_parte": "216c07472",
+  "tipo_componente": "BOMBA",
+  "etapa": "OT Creada",
+  "orden_trabajo_apia": "12111031-491990",
+  "tipo_entrada": "Prueba en Banco (Diagnostico)",
+  "rut_cliente": "93141000-8",
+  "razon_social": "LUREYE GENERACION S.A.",
+  "orden_trabajo_manager": "491990",
+  "modelo": "TIPO A 6",
+  "modelo_numreg": 535,
+  "numreg_cliente": 2118,
+  "marca": "Bosch",
+  "creador": "Carlos Alberto Montt Herrera ",
+  "a_cargo_de": "Cliente",
+  "sucursal": 1630,
+  "observaciones": "SERVICIO EN TERRENO, DESPOTENCIAR 2600MSNM\nPONER TUERCA NUEVA ",
+  "fecha_compromiso_ppto": "05-11-2021 13:49:42"
+}
+
+***** Prueba
+{
+  "fechaInicio": "29-10-2021 09:49:50",
+  "etapa": "Prueba",
+  "orden_trabajo_apia": "12110376-491864",
+  "fechaTermino": "29-10-2021 09:50:54",
+  "usuario": "Francisco Zamorano",
+  "orden_trabajo_manager": "491864",
+  "usuario_login": "francisco.zamorano"
+}
+
